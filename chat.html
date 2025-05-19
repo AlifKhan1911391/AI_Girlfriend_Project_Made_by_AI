@@ -85,6 +85,9 @@
             box-sizing: border-box;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
+            transition: background-color var(--transition-normal), 
+                      color var(--transition-normal), 
+                      border-color var(--transition-normal);
         }
         
         body {
@@ -107,6 +110,7 @@
             position: relative;
             background-color: var(--background);
             transition: background-color var(--transition-normal);
+            will-change: background-color;
         }
         
         @media (min-width: 768px) {
@@ -130,6 +134,7 @@
             top: 0;
             box-shadow: var(--shadow-sm);
             transition: background-color var(--transition-normal);
+            will-change: background-color;
         }
         
         .back-button {
@@ -166,7 +171,8 @@
             object-fit: cover;
         }
         
-        .profile-pic::after {
+        /* Modified: Only show green dot when typing, not with "Active now" */
+        .profile-pic.typing::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -209,6 +215,7 @@
             transition: color var(--transition-normal);
         }
         
+        /* Modified: Status dot only shows when not "Active now" */
         .status-dot {
             width: 8px;
             height: 8px;
@@ -217,6 +224,12 @@
             margin-right: 6px;
             flex-shrink: 0;
             animation: pulse 2s infinite;
+            display: none; /* Hidden by default */
+        }
+        
+        /* Show status dot only when typing */
+        .status.typing .status-dot {
+            display: block;
         }
         
         .header-actions {
@@ -251,6 +264,7 @@
             position: relative;
             transition: background-color var(--transition-normal);
             padding-bottom: 80px; /* Add padding to prevent messages from being hidden behind input */
+            will-change: background-color;
         }
         
         /* Custom scrollbar styling */
@@ -386,10 +400,14 @@
             align-items: flex-start;
         }
         
-        /* Connect consecutive messages from the same sender */
+        /* Improved: Connect consecutive messages from the same sender with consistent spacing */
         .bot-message-container + .bot-message-container .message {
             border-top-left-radius: 4px;
             margin-top: -4px;
+        }
+        
+        .bot-message-container + .bot-message-container {
+            padding-left: 48px; /* Account for avatar width + margin */
         }
         
         .user-message-container + .user-message-container .message {
@@ -442,27 +460,51 @@
             opacity: 0.8;
         }
         
+        /* Make timestamps more accessible on mobile */
+        @media (max-width: 767px) {
+            .message-time {
+                opacity: 0.5; /* Always partially visible on mobile */
+                font-size: 9px; /* Smaller size */
+                margin-top: 2px;
+            }
+            
+            .message:active .message-time {
+                opacity: 0.8; /* Increase visibility on tap */
+            }
+        }
+        
         .user-message .message-time {
             color: rgba(255, 255, 255, 0.8);
         }
         
-        .message-seen {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 2px;
-        }
-        
-        .seen-indicator {
+        /* New: Global seen indicator that moves between messages */
+        #global-seen-indicator {
+            position: absolute;
             width: 16px;
             height: 16px;
             border-radius: var(--radius-full);
             overflow: hidden;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
-        .seen-indicator img {
+        #global-seen-indicator img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        
+        /* New: Animation for seen indicator movement */
+        @keyframes seenAvatarMove {
+            0% { transform: translateY(-20px); opacity: 0; }
+            70% { transform: translateY(3px); }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        #global-seen-indicator.animate {
+            animation: seenAvatarMove 0.4s ease-out;
+            opacity: 1;
         }
         
         .typing-indicator {
@@ -494,7 +536,7 @@
             30% { transform: translateY(-5px); }
         }
         
-        /* New fixed input container */
+        /* New fixed input container with improved mobile keyboard handling */
         .chat-input-container {
             position: fixed;
             bottom: 0;
@@ -506,9 +548,10 @@
             align-items: flex-end;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
             z-index: 100;
-            transition: background-color var(--transition-normal);
+            transition: background-color var(--transition-normal), transform 0.3s ease;
             max-width: 100%;
             margin: 0 auto;
+            will-change: background-color, transform;
         }
         
         @media (min-width: 768px) {
@@ -517,6 +560,11 @@
                 left: 50%;
                 transform: translateX(-50%);
             }
+        }
+        
+        /* Add class for when keyboard is visible */
+        body.keyboard-visible .chat-input-container {
+            position: absolute;
         }
         
         .input-wrapper {
@@ -628,7 +676,7 @@
             }
         }
         
-        /* Avatar animations */
+        /* Enhanced avatar animations */
         .profile-pic.typing {
             animation: bounce 0.5s infinite alternate;
         }
@@ -638,13 +686,14 @@
         }
         
         .profile-pic.message-received {
-            animation: headTilt 0.3s ease-in-out;
+            animation: headTiltImproved 0.6s ease-in-out;
         }
         
-        @keyframes headTilt {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(3deg); }
-            100% { transform: rotate(0deg); }
+        @keyframes headTiltImproved {
+            0% { transform: rotate(0deg) scale(1); }
+            30% { transform: rotate(5deg) scale(1.05); }
+            70% { transform: rotate(-2deg) scale(1.02); }
+            100% { transform: rotate(0deg) scale(1); }
         }
     </style>
 </head>
@@ -675,6 +724,11 @@
             <!-- Messages will appear here -->
         </div>
         
+        <!-- New global seen indicator that will move between messages -->
+        <div id="global-seen-indicator">
+            <img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+        </div>
+        
         <button class="scroll-to-bottom" id="scroll-to-bottom">
             <i class="fas fa-chevron-down"></i>
         </button>
@@ -701,6 +755,7 @@
             const themeIcon = themeToggle.querySelector('i');
             const profilePic = document.querySelector('.profile-pic');
             const backButton = document.getElementById('back-button');
+            const globalSeenIndicator = document.getElementById('global-seen-indicator');
             
             // Google Gemini API Key
             const GEMINI_API_KEY = 'AIzaSyA4noABIgUKn19XEQqP8aVRkmc7VfvF5Cs';
@@ -713,6 +768,9 @@
             
             // Conversation history array to maintain state
             let conversationHistory = [];
+            
+            // Track the last user message container for seen indicator
+            let lastUserMessageContainer = null;
             
             // Check for existing theme preference
             if (localStorage.getItem('samia_theme') === 'dark') {
@@ -841,6 +899,13 @@
             const workerUrl = URL.createObjectURL(workerBlob);
             const worker = new Worker(workerUrl);
             
+            // Improved error handling for worker
+            worker.onerror = function(e) {
+                console.error('Worker error:', e);
+                addMessage({ error: true, message: 'Connection error. Please try again.' }, false, true);
+                statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+            };
+            
             worker.onmessage = function(e) {
                 const { success, data, error } = e.data;
                 
@@ -874,13 +939,16 @@
                     // Save conversation history to localStorage
                     saveConversationHistory();
                     
+                    // Hide seen indicator when bot replies
+                    hideSeenIndicator();
+                    
                     addMessage(responseText, false);
                     
                     // Show message received animation
                     profilePic.classList.add('message-received');
                     setTimeout(() => {
                         profilePic.classList.remove('message-received');
-                    }, 300);
+                    }, 600);
                     
                     statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
                 } catch (error) {
@@ -907,101 +975,132 @@
                         conversationHistory = JSON.parse(savedHistory);
                         
                         // Display the loaded conversation
-                        conversationHistory.forEach(message => {
-                            addMessage(message.text, message.isUser, false, false);
+                        conversationHistory.forEach((message, index) => {
+                            const container = addMessage(message.text, message.isUser, false, false);
+                            
+                            // Track the last user message for seen indicator
+                            if (message.isUser && index === conversationHistory.length - 1) {
+                                lastUserMessageContainer = container;
+                            }
                         });
                         
+                        // If the last message was from user, show seen indicator
+                        if (lastUserMessageContainer && conversationHistory.length > 0 && 
+                            conversationHistory[conversationHistory.length - 1].isUser) {
+                            showSeenIndicator(lastUserMessageContainer);
+                        }
+                        
                         // Scroll to bottom after loading history
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        setTimeout(() => {
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }, 100);
                     } catch (error) {
                         console.error("Error loading conversation history:", error);
-                        // If there's an error, start fresh
-                        conversationHistory = [];
                     }
                 }
             }
             
-            async function sendToGemini(message) {
-                statusElement.innerHTML = `<div class="status-dot"></div>Typing...`;
-                profilePic.classList.add('typing');
+            // New function to show the seen indicator
+            function showSeenIndicator(messageContainer) {
+                if (!messageContainer) return;
                 
-                showTyping();
+                // Get position for the seen indicator
+                const rect = messageContainer.getBoundingClientRect();
+                const chatRect = chatMessages.getBoundingClientRect();
                 
-                // Add user message to conversation history
-                conversationHistory.push({
-                    text: message,
-                    isUser: true,
-                    timestamp: new Date()
-                });
+                // Position the indicator at the bottom right of the message
+                globalSeenIndicator.style.left = (rect.right - 20) + 'px';
+                globalSeenIndicator.style.top = (rect.bottom - chatRect.top + chatMessages.scrollTop - 20) + 'px';
                 
-                // Save conversation history
-                saveConversationHistory();
+                // Remove any existing animation class
+                globalSeenIndicator.classList.remove('animate');
                 
-                // Use Web Worker for API call
-                worker.postMessage({
-                    prompt: basePrompt,
-                    endpoint: GEMINI_API_ENDPOINT,
-                    conversationHistory: conversationHistory
-                });
+                // Trigger reflow to restart animation
+                void globalSeenIndicator.offsetWidth;
+                
+                // Add animation class
+                globalSeenIndicator.classList.add('animate');
             }
             
-            function addMessage(text, isUser, isError = false, addToDOM = true) {
-                if (!addToDOM) return; // Skip DOM operations when loading history
+            // New function to hide the seen indicator
+            function hideSeenIndicator() {
+                globalSeenIndicator.classList.remove('animate');
+                globalSeenIndicator.style.opacity = '0';
+            }
+            
+            // Modified addMessage function to handle seen indicator
+            function addMessage(message, isUser, isError = false, shouldScroll = true) {
+                // Store current scroll position and distance from bottom
+                const scrollTop = chatMessages.scrollTop;
+                const scrollHeight = chatMessages.scrollHeight;
+                const clientHeight = chatMessages.clientHeight;
+                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
                 
                 const container = document.createElement('div');
                 container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
                 
-                if (!isUser && !isError) {
-                    const messageInfo = document.createElement('div');
-                    messageInfo.className = 'message-info';
-                    messageInfo.innerHTML = `<div class="message-sender">Samia Afroz 💖</div>`;
-                    container.appendChild(messageInfo);
-                }
-                
-                const message = document.createElement('div');
-                message.className = `message ${isUser ? 'user-message' : 'bot-message'} ${isError ? 'error-message' : ''}`;
-                
-                // Process content based on type
-                let messageContent = '';
-                if (typeof text === 'object' && text.error) {
-                    messageContent = text.message;
+                if (isError) {
+                    container.innerHTML = `
+                        <div class="message error-message">
+                            ${message.message}
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
                 } else {
-                    // Apply Markdown rendering for bot messages only
-                    if (!isUser && !isError) {
-                        messageContent = marked.parse(text);
-                    } else {
-                        messageContent = text;
+                    let messageContent = '';
+                    
+                    try {
+                        // Use marked.js to render markdown
+                        messageContent = marked.parse(message);
+                    } catch (error) {
+                        console.error("Markdown parsing error:", error);
+                        messageContent = message;
                     }
+                    
+                    container.innerHTML = `
+                        <div class="message ${isUser ? 'user-message' : 'bot-message'}">
+                            ${messageContent}
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
                 }
                 
-                message.innerHTML = messageContent + `<div class="message-time">${getCurrentTime()}</div>`;
-                
-                container.appendChild(message);
                 chatMessages.appendChild(container);
                 
-                // Add seen indicator for user messages
-                if (isUser) {
-                    const seenContainer = document.createElement('div');
-                    seenContainer.className = 'message-seen';
-                    
-                    const seenIndicator = document.createElement('div');
-                    seenIndicator.className = 'seen-indicator';
-                    seenIndicator.innerHTML = `<img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">`;
-                    
-                    seenContainer.appendChild(seenIndicator);
-                    container.appendChild(seenContainer);
+                // Only auto-scroll if user was already near bottom
+                if (shouldScroll && (isScrolledToBottom || distanceFromBottom < 100 || isUser)) {
+                    // Use requestAnimationFrame for smoother scrolling
+                    requestAnimationFrame(() => {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
                 }
                 
-                if (isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                } else {
-                    scrollToBottomBtn.classList.add('visible');
+                // If this is a user message, update the last user message container
+                // and show the seen indicator after a delay
+                if (isUser) {
+                    // Hide any existing seen indicator first
+                    hideSeenIndicator();
+                    
+                    // Update the last user message container
+                    lastUserMessageContainer = container;
+                    
+                    // Show seen indicator after a delay (simulating server response)
+                    setTimeout(() => {
+                        showSeenIndicator(container);
+                    }, 1000);
                 }
                 
                 return container;
             }
             
             function showTyping() {
+                // Update status to show typing
+                statusElement.innerHTML = `<div class="status-dot"></div>Typing...`;
+                statusElement.classList.add('typing');
+                
+                // Add typing class to profile pic to show animation
+                profilePic.classList.add('typing');
+                
                 const container = document.createElement('div');
                 container.className = 'typing-indicator';
                 container.id = 'typing-indicator';
@@ -1021,6 +1120,10 @@
             }
             
             function hideTyping() {
+                // Reset status
+                statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                statusElement.classList.remove('typing');
+                
                 const typingIndicator = document.getElementById('typing-indicator');
                 if (typingIndicator) {
                     typingIndicator.remove();
@@ -1039,6 +1142,106 @@
                 sendButton.disabled = true;
                 
                 await sendToGemini(messageText);
+            }
+            
+            // Improved sendToGemini with retry logic
+            let retryCount = 0;
+            const MAX_RETRIES = 3;
+            
+            async function sendToGemini(messageText) {
+                retryCount = 0;
+                
+                // Add to conversation history
+                conversationHistory.push({
+                    text: messageText,
+                    isUser: true,
+                    timestamp: new Date()
+                });
+                
+                // Save conversation history
+                saveConversationHistory();
+                
+                // Show typing indicator
+                showTyping();
+                
+                // Send to API via worker
+                worker.postMessage({
+                    prompt: basePrompt,
+                    endpoint: GEMINI_API_ENDPOINT,
+                    conversationHistory: conversationHistory
+                });
+                
+                // Set up retry handler
+                worker.onmessage = function(e) {
+                    const { success, data, error } = e.data;
+                    
+                    hideTyping();
+                    
+                    if (!success && retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        console.log(`Retrying API call (${retryCount}/${MAX_RETRIES})...`);
+                        
+                        // Show retry message
+                        addMessage({ error: true, message: `Connection issue. Retrying... (${retryCount}/${MAX_RETRIES})` }, false, true);
+                        
+                        // Retry with exponential backoff
+                        setTimeout(() => {
+                            showTyping();
+                            worker.postMessage({
+                                prompt: basePrompt,
+                                endpoint: GEMINI_API_ENDPOINT,
+                                conversationHistory: conversationHistory
+                            });
+                        }, 1000 * Math.pow(2, retryCount));
+                        return;
+                    }
+                    
+                    if (!success) {
+                        addMessage({ error: true, message: `API Error: ${error}` }, false, true);
+                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                        return;
+                    }
+                    
+                    try {
+                        // Extract the response text from Gemini API response format
+                        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
+                            throw new Error('Invalid response format from Gemini API');
+                        }
+                        
+                        // Get the raw text from the response
+                        let responseText = data.candidates[0].content.parts[0].text.trim();
+                        
+                        // Remove "Aiyoo!" or similar phrases from the beginning of the response
+                        responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
+                        
+                        // Add to conversation history
+                        conversationHistory.push({
+                            text: responseText,
+                            isUser: false,
+                            timestamp: new Date()
+                        });
+                        
+                        // Save conversation history to localStorage
+                        saveConversationHistory();
+                        
+                        // Hide seen indicator when bot replies
+                        hideSeenIndicator();
+                        
+                        addMessage(responseText, false);
+                        
+                        // Show message received animation
+                        profilePic.classList.add('message-received');
+                        setTimeout(() => {
+                            profilePic.classList.remove('message-received');
+                        }, 600);
+                        
+                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                    } catch (error) {
+                        console.error("Response Processing Error:", error);
+                        addMessage({ error: true, message: `Error processing response: ${error.message}` }, false, true);
+                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                    }
+                };
             }
             
             function getCurrentTime() {
@@ -1141,17 +1344,60 @@
             setVH();
             window.addEventListener('resize', setVH);
             
-            // Fix for mobile keyboard pushing up content
-            window.visualViewport.addEventListener('resize', function() {
-                if (window.visualViewport.height < window.innerHeight) {
-                    // Keyboard is likely visible
-                    document.body.style.height = window.visualViewport.height + 'px';
-                } else {
-                    // Keyboard is likely hidden
-                    document.body.style.height = '100vh';
-                }
+            // Improved mobile keyboard handling
+            function handleVisualViewport() {
+                const viewport = window.visualViewport;
+                
+                viewport.addEventListener('resize', () => {
+                    const isKeyboardVisible = viewport.height < window.innerHeight;
+                    
+                    if (isKeyboardVisible) {
+                        // Keyboard is visible
+                        document.body.style.height = `${viewport.height}px`;
+                        document.body.classList.add('keyboard-visible');
+                        
+                        // Adjust input container position
+                        const inputContainer = document.querySelector('.chat-input-container');
+                        inputContainer.style.bottom = `${window.innerHeight - viewport.height - viewport.offsetTop}px`;
+                        
+                        // Scroll to bottom of chat
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } else {
+                        // Keyboard is hidden
+                        document.body.style.height = '100vh';
+                        document.body.classList.remove('keyboard-visible');
+                        
+                        // Reset input container
+                        const inputContainer = document.querySelector('.chat-input-container');
+                        inputContainer.style.bottom = '0';
+                    }
+                });
+            }
+            
+            // Initialize viewport handling
+            if (window.visualViewport) {
+                handleVisualViewport();
+            }
+            
+            // Add swipe gesture for back navigation
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
             });
+            
+            document.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                if (touchEndX - touchStartX > 100) {
+                    // Swipe right detected, navigate back
+                    window.location.href = 'index.html';
+                }
+            }
         });
     </script>
 </body>
-</html>
