@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samia Messenger Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            /* Light mode variables */
+            --background-light: #FFFFFF;
+            --background-secondary-light: #F0F2F5;
+            --user-bubble-gradient-light: linear-gradient(135deg, #0084FF, #0078FF, #006AFF);
+            --bot-bubble-light: #F0F0F0;
+            --text-primary-light: #1C1E21;
+            --text-secondary-light: #65676B;
+            --text-on-accent-light: #FFFFFF;
+            --accent-color: #0084FF;
+            --accent-hover: #0063CC;
+            --online-status: #31A24C;
+            --input-bg-light: #F0F2F5;
+            --input-border-light: #E4E6EB;
+            --button-secondary-bg-light: #F0F2F5;
+            --button-secondary-text-light: #65676B;
+            
+            /* Dark mode variables */
+            --background-dark: #121212;
+            --background-secondary-dark: #18191A;
+            --user-bubble-gradient-dark: linear-gradient(135deg, #0084FF, #0078FF, #006AFF);
+            --bot-bubble-dark: #252525;
+            --text-primary-dark: #FFFFFF;
+            --text-secondary-dark: #B0B2B8;
+            --text-on-accent-dark: #FFFFFF;
+            --input-bg-dark: #3A3B3C;
+            --input-border-dark: #3A3B3C;
+            --button-secondary-bg-dark: #3A3B3C;
+            --button-secondary-text-dark: #B0B2B8;
+            
+            /* Common variables */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-sm: 8px;
+            --radius-md: 18px;
+            --radius-lg: 24px;
+            --radius-full: 999px;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            
+            /* Default to light mode */
+            --background: var(--background-light);
+            --background-secondary: var(--background-secondary-light);
+            --user-bubble-gradient: var(--user-bubble-gradient-light);
+            --bot-bubble: var(--bot-bubble-light);
+            --text-primary: var(--text-primary-light);
+            --text-secondary: var(--text-secondary-light);
+            --text-on-accent: var(--text-on-accent-light);
+            --input-bg: var(--input-bg-light);
+            --input-border: var(--input-border-light);
+            --button-secondary-bg: var(--button-secondary-bg-light);
+            --button-secondary-text: var(--button-secondary-text-light);
+        }
+        
+        .dark-mode {
+            --background: var(--background-dark);
+            --background-secondary: var(--background-secondary-dark);
+            --user-bubble-gradient: var(--user-bubble-gradient-dark);
+            --bot-bubble: var(--bot-bubble-dark);
+            --text-primary: var(--text-primary-dark);
+            --text-secondary: var(--text-secondary-dark);
+            --text-on-accent: var(--text-on-accent-dark);
+            --input-bg: var(--input-bg-dark);
+            --input-border: var(--input-border-dark);
+            --button-secondary-bg: var(--button-secondary-bg-dark);
+            --button-secondary-text: var(--button-secondary-text-dark);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: var(--background-secondary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            font-size: 15px;
+            line-height: 1.4;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .chat-app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            background-color: var(--background);
+            transition: background-color var(--transition-normal);
+        }
+        
+        @media (min-width: 768px) {
+            .chat-app {
+                max-width: 768px;
+                height: 100vh;
+                margin: 0 auto;
+                border-left: 1px solid rgba(0, 0, 0, 0.1);
+                border-right: 1px solid rgba(0, 0, 0, 0.1);
+            }
+        }
+        
+        .chat-header {
+            padding: 12px 16px;
+            background-color: var(--background);
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            position: sticky;
+            top: 0;
+            box-shadow: var(--shadow-sm);
+            transition: background-color var(--transition-normal);
+        }
+        
+        .back-button {
+            margin-right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent-color);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .back-button:hover {
+            background-color: var(--input-bg);
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            margin-right: 12px;
+            background-color: var(--input-bg);
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-pic::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background-color: var(--online-status);
+            border: 2px solid var(--background);
+            border-radius: var(--radius-full);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .header-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .profile-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color var(--transition-normal);
+        }
+        
+        .status {
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            margin-top: 2px;
+            transition: color var(--transition-normal);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--online-status);
+            border-radius: var(--radius-full);
+            margin-right: 6px;
+            flex-shrink: 0;
+            animation: pulse 2s infinite;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .header-button {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent-color);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            background: none;
+            border: none;
+        }
+        
+        .header-button:hover {
+            background-color: var(--input-bg);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background-color: var(--background);
+            scroll-behavior: smooth;
+            position: relative;
+            transition: background-color var(--transition-normal);
+        }
+        
+        /* Custom scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: var(--radius-full);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+        
+        .chat-messages:hover::-webkit-scrollbar-thumb {
+            opacity: 1;
+        }
+        
+        .message-container {
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 100%;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            position: relative;
+            margin-bottom: 2px;
+        }
+        
+        .message p {
+            margin-bottom: 8px;
+        }
+        
+        .message p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message strong {
+            font-weight: 600;
+        }
+        
+        .message em {
+            font-style: italic;
+        }
+        
+        .message h1, .message h2, .message h3, .message h4, .message h5, .message h6 {
+            margin-top: 12px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .message h1 {
+            font-size: 1.5em;
+        }
+        
+        .message h2 {
+            font-size: 1.3em;
+        }
+        
+        .message h3 {
+            font-size: 1.2em;
+        }
+        
+        .message blockquote {
+            border-left: 3px solid rgba(0, 0, 0, 0.1);
+            padding-left: 8px;
+            margin-left: 0;
+            margin-right: 0;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+        
+        .message code {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .message pre {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        
+        .message pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .user-message {
+            background: var(--user-bubble-gradient);
+            color: var(--text-on-accent);
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .user-message-container {
+            align-items: flex-end;
+        }
+        
+        .bot-message {
+            background-color: var(--bot-bubble);
+            color: var(--text-primary);
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            animation: slideInLeft 0.3s ease-out;
+        }
+        
+        .bot-message-container {
+            align-items: flex-start;
+        }
+        
+        /* Connect consecutive messages from the same sender */
+        .bot-message-container + .bot-message-container .message {
+            border-top-left-radius: 4px;
+            margin-top: -4px;
+        }
+        
+        .user-message-container + .user-message-container .message {
+            border-top-right-radius: 4px;
+            margin-top: -4px;
+        }
+        
+        .error-message {
+            background-color: #FA383E;
+            color: white;
+            border: none;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .message-info {
+            display: flex;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+        
+        .bot-message-container:not(:first-child) .message-info {
+            display: none;
+        }
+        
+        .message-sender {
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 8px;
+            color: var(--text-secondary);
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .message:hover .message-time {
+            opacity: 0.8;
+        }
+        
+        .user-message .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .message-seen {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2px;
+        }
+        
+        .seen-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        
+        .seen-indicator img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--bot-bubble);
+            border-radius: var(--radius-md);
+            margin-right: auto;
+            margin-bottom: 8px;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-secondary);
+            border-radius: var(--radius-full);
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .chat-input-container {
+            padding: 12px 16px;
+            background-color: var(--background);
+            display: flex;
+            align-items: flex-end;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 2;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            flex: 1;
+            background-color: var(--input-bg);
+            border-radius: var(--radius-full);
+            padding-right: 8px;
+            transition: box-shadow var(--transition-fast), background-color var(--transition-normal);
+        }
+        
+        .input-wrapper:focus-within {
+            box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
+        }
+        
+        .input-actions {
+            display: flex;
+            padding: 8px 4px 8px 12px;
+        }
+        
+        .input-button {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            background: none;
+            border: none;
+            margin-right: 4px;
+        }
+        
+        .input-button:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--accent-color);
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            background-color: transparent;
+            outline: none;
+            font-size: 15px;
+            color: var(--text-primary);
+            resize: none;
+            max-height: 120px;
+            min-height: 20px;
+            line-height: 1.4;
+            transition: color var(--transition-normal);
+        }
+        
+        .message-input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .send-button {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            background-color: transparent;
+            border: none;
+            margin-left: 4px;
+        }
+        
+        .send-button.active {
+            color: var(--accent-color);
+            background-color: rgba(0, 132, 255, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .send-button:hover:not(:disabled) {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .scroll-to-bottom {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background-color: var(--background);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all var(--transition-normal);
+            color: var(--accent-color);
+            z-index: 5;
+            border: none;
+        }
+        
+        .scroll-to-bottom.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .scroll-to-bottom:hover {
+            background-color: var(--input-bg);
+        }
+        
+        /* Emoji picker */
+        .emoji-picker {
+            position: absolute;
+            bottom: 70px;
+            left: 16px;
+            background-color: var(--background);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            width: 320px;
+            max-width: calc(100vw - 32px);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .emoji-picker.visible {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .emoji-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            background-color: var(--background);
+            z-index: 1;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .emoji-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .emoji-tab.active {
+            border-bottom: 2px solid var(--accent-color);
+        }
+        
+        .emoji-tab:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .emoji-category {
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color var(--transition-normal);
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            padding: 8px;
+        }
+        
+        .emoji {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: background-color var(--transition-fast), transform var(--transition-fast);
+            font-size: 20px;
+        }
+        
+        .emoji:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: scale(1.2);
+        }
+        
+        /* Hashtag styling */
+        .hashtag {
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 767px) {
+            .message {
+                max-width: 85%;
+            }
+            
+            .chat-header {
+                padding: 10px 12px;
+            }
+            
+            .chat-input-container {
+                padding: 10px 12px;
+            }
+            
+            .emoji-picker {
+                left: 0;
+                right: 0;
+                margin: 0 auto;
+                width: calc(100% - 24px);
+            }
+        }
+        
+        /* Avatar animations */
+        .profile-pic.typing {
+            animation: bounce 0.5s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            to { transform: scale(1.05); }
+        }
+        
+        .profile-pic.message-received {
+            animation: headTilt 0.3s ease-in-out;
+        }
+        
+        @keyframes headTilt {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(3deg); }
+            100% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-app">
+        <div class="chat-header">
+            <div class="back-button" id="back-button">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+            <div class="profile-pic">
+                <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+            </div>
+            <div class="header-info">
+                <div class="profile-name">Samia Afroz 💖</div>
+                <div class="status">
+                    <div class="status-dot"></div>
+                    Active now
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-button" id="theme-toggle" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <button class="scroll-to-bottom" id="scroll-to-bottom">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+        
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <div class="input-actions">
+                    <button class="input-button" id="emoji-button">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <button class="input-button" id="image-button">
+                        <i class="far fa-image"></i>
+                    </button>
+                </div>
+                <textarea class="message-input" placeholder="Type a message to Samia..." id="message-input" rows="1"></textarea>
+                <button class="send-button" id="send-button" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="emoji-picker" id="emoji-picker">
+            <div class="emoji-tabs">
+                <div class="emoji-tab active" data-category="recent">
+                    <i class="far fa-clock"></i>
+                </div>
+                <div class="emoji-tab" data-category="smileys">
+                    <i class="far fa-smile"></i>
+                </div>
+                <div class="emoji-tab" data-category="love">
+                    <i class="far fa-heart"></i>
+                </div>
+                <div class="emoji-tab" data-category="animals">
+                    <i class="fas fa-paw"></i>
+                </div>
+                <div class="emoji-tab" data-category="food">
+                    <i class="fas fa-pizza-slice"></i>
+                </div>
+                <div class="emoji-tab" data-category="activities">
+                    <i class="fas fa-futbol"></i>
+                </div>
+            </div>
+            <div class="emoji-content">
+                <div class="emoji-category">Recently Used</div>
+                <div class="emoji-grid" id="recent-emojis">
+                    <!-- Will be populated with recently used emojis -->
+                </div>
+                
+                <div class="emoji-category">Smileys & Emotions</div>
+                <div class="emoji-grid" id="smiley-emojis">
+                    <span class="emoji">😀</span>
+                    <span class="emoji">😃</span>
+                    <span class="emoji">😄</span>
+                    <span class="emoji">😁</span>
+                    <span class="emoji">😆</span>
+                    <span class="emoji">😅</span>
+                    <span class="emoji">🤣</span>
+                    <span class="emoji">😂</span>
+                    <span class="emoji">🙂</span>
+                    <span class="emoji">🙃</span>
+                    <span class="emoji">😉</span>
+                    <span class="emoji">😊</span>
+                    <span class="emoji">😇</span>
+                    <span class="emoji">🥰</span>
+                    <span class="emoji">😍</span>
+                    <span class="emoji">🤩</span>
+                    <span class="emoji">😘</span>
+                    <span class="emoji">😗</span>
+                    <span class="emoji">😚</span>
+                    <span class="emoji">😙</span>
+                    <span class="emoji">😋</span>
+                    <span class="emoji">😛</span>
+                    <span class="emoji">😜</span>
+                    <span class="emoji">🤪</span>
+                    <span class="emoji">😝</span>
+                    <span class="emoji">🤑</span>
+                    <span class="emoji">🤗</span>
+                    <span class="emoji">🤭</span>
+                    <span class="emoji">🤫</span>
+                    <span class="emoji">🤔</span>
+                    <span class="emoji">🤐</span>
+                    <span class="emoji">🤨</span>
+                    <span class="emoji">😐</span>
+                    <span class="emoji">😑</span>
+                    <span class="emoji">😶</span>
+                    <span class="emoji">😏</span>
+                    <span class="emoji">😒</span>
+                    <span class="emoji">🙄</span>
+                    <span class="emoji">😬</span>
+                    <span class="emoji">🤥</span>
+                    <span class="emoji">😌</span>
+                    <span class="emoji">😔</span>
+                    <span class="emoji">😪</span>
+                    <span class="emoji">🤤</span>
+                    <span class="emoji">😴</span>
+                    <span class="emoji">😷</span>
+                    <span class="emoji">🤒</span>
+                    <span class="emoji">🤕</span>
+                    <span class="emoji">🤢</span>
+                    <span class="emoji">🤮</span>
+                    <span class="emoji">🤧</span>
+                    <span class="emoji">🥵</span>
+                    <span class="emoji">🥶</span>
+                    <span class="emoji">🥴</span>
+                    <span class="emoji">😵</span>
+                    <span class="emoji">🤯</span>
+                    <span class="emoji">🤠</span>
+                    <span class="emoji">🥳</span>
+                    <span class="emoji">😎</span>
+                    <span class="emoji">🤓</span>
+                    <span class="emoji">🧐</span>
+                    <span class="emoji">😕</span>
+                    <span class="emoji">😟</span>
+                    <span class="emoji">🙁</span>
+                    <span class="emoji">☹️</span>
+                    <span class="emoji">😮</span>
+                    <span class="emoji">😯</span>
+                    <span class="emoji">😲</span>
+                    <span class="emoji">😳</span>
+                    <span class="emoji">🥺</span>
+                    <span class="emoji">😦</span>
+                    <span class="emoji">😧</span>
+                    <span class="emoji">😨</span>
+                    <span class="emoji">😰</span>
+                    <span class="emoji">😥</span>
+                    <span class="emoji">😢</span>
+                    <span class="emoji">😭</span>
+                    <span class="emoji">😱</span>
+                    <span class="emoji">😖</span>
+                    <span class="emoji">😣</span>
+                    <span class="emoji">😞</span>
+                    <span class="emoji">😓</span>
+                    <span class="emoji">😩</span>
+                    <span class="emoji">😫</span>
+                    <span class="emoji">🥱</span>
+                    <span class="emoji">😤</span>
+                    <span class="emoji">😡</span>
+                    <span class="emoji">😠</span>
+                    <span class="emoji">🤬</span>
+                    <span class="emoji">😈</span>
+                    <span class="emoji">👿</span>
+                    <span class="emoji">💀</span>
+                    <span class="emoji">☠️</span>
+                    <span class="emoji">💩</span>
+                    <span class="emoji">🤡</span>
+                    <span class="emoji">👹</span>
+                    <span class="emoji">👺</span>
+                    <span class="emoji">👻</span>
+                    <span class="emoji">👽</span>
+                    <span class="emoji">👾</span>
+                    <span class="emoji">🤖</span>
+                    <span class="emoji">😺</span>
+                    <span class="emoji">😸</span>
+                    <span class="emoji">😹</span>
+                    <span class="emoji">😻</span>
+                    <span class="emoji">😼</span>
+                    <span class="emoji">😽</span>
+                    <span class="emoji">🙀</span>
+                    <span class="emoji">😿</span>
+                    <span class="emoji">😾</span>
+                </div>
+                
+                <div class="emoji-category">Love & Hearts</div>
+                <div class="emoji-grid" id="love-emojis">
+                    <span class="emoji">❤️</span>
+                    <span class="emoji">🧡</span>
+                    <span class="emoji">💛</span>
+                    <span class="emoji">💚</span>
+                    <span class="emoji">💙</span>
+                    <span class="emoji">💜</span>
+                    <span class="emoji">🖤</span>
+                    <span class="emoji">🤍</span>
+                    <span class="emoji">🤎</span>
+                    <span class="emoji">💔</span>
+                    <span class="emoji">❣️</span>
+                    <span class="emoji">💕</span>
+                    <span class="emoji">💞</span>
+                    <span class="emoji">💓</span>
+                    <span class="emoji">💗</span>
+                    <span class="emoji">💖</span>
+                    <span class="emoji">💘</span>
+                    <span class="emoji">💝</span>
+                    <span class="emoji">💟</span>
+                    <span class="emoji">💌</span>
+                    <span class="emoji">💋</span>
+                    <span class="emoji">💯</span>
+                    <span class="emoji">💢</span>
+                    <span class="emoji">💥</span>
+                    <span class="emoji">💫</span>
+                    <span class="emoji">💦</span>
+                    <span class="emoji">💨</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatMessages = document.getElementById('chat-messages');
+            const statusElement = document.querySelector('.status');
+            const scrollToBottomBtn = document.getElementById('scroll-to-bottom');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = themeToggle.querySelector('i');
+            const emojiButton = document.getElementById('emoji-button');
+            const emojiPicker = document.getElementById('emoji-picker');
+            const emojis = document.querySelectorAll('.emoji');
+            const profilePic = document.querySelector('.profile-pic');
+            const backButton = document.getElementById('back-button');
+            
+            // Google Gemini API Key
+            const GEMINI_API_KEY = 'AIzaSyA4noABIgUKn19XEQqP8aVRkmc7VfvF5Cs';
+            
+            // Gemini API Endpoint
+            const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            // Get the updated prompt from localStorage
+            const basePrompt = localStorage.getItem('samia_updated_prompt') || '';
+            
+            // Check for existing theme preference
+            if (localStorage.getItem('samia_theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+            
+            // Initialize marked.js for Markdown rendering
+            marked.setOptions({
+                breaks: true,
+                gfm: true
+            });
+            
+            // Recent emojis
+            let recentEmojis = JSON.parse(localStorage.getItem('samia_recent_emojis')) || [];
+            updateRecentEmojis();
+            
+            // Scroll handling
+            let isScrolledToBottom = true;
+            
+            chatMessages.addEventListener('scroll', function() {
+                isScrolledToBottom = Math.abs(chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop) < 10;
+                
+                if (isScrolledToBottom) {
+                    scrollToBottomBtn.classList.remove('visible');
+                } else {
+                    scrollToBottomBtn.classList.add('visible');
+                }
+            });
+            
+            scrollToBottomBtn.addEventListener('click', function() {
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Input handling
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+                
+                if (this.value.trim() !== '') {
+                    sendButton.classList.add('active');
+                    sendButton.disabled = false;
+                } else {
+                    sendButton.classList.remove('active');
+                    sendButton.disabled = true;
+                }
+                
+                // Highlight hashtags
+                highlightHashtags();
+            });
+            
+            function highlightHashtags() {
+                const text = messageInput.value;
+                const hashtags = text.match(/#\w+/g);
+                
+                if (hashtags) {
+                    // Handle specific hashtag triggers
+                    if (hashtags.includes('#pic')) {
+                        document.getElementById('image-button').style.color = '#0084FF';
+                    } else {
+                        document.getElementById('image-button').style.color = '';
+                    }
+                    
+                    if (hashtags.includes('#mood')) {
+                        // Insert "How are you feeling?" text
+                        if (!text.includes("How are you feeling?")) {
+                            messageInput.value += " How are you feeling?";
+                            messageInput.style.height = 'auto';
+                            messageInput.style.height = (messageInput.scrollHeight) + 'px';
+                        }
+                    }
+                }
+            }
+            
+            // Theme toggle
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('samia_theme', 'dark');
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                } else {
+                    localStorage.setItem('samia_theme', 'light');
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                }
+            });
+            
+            // Emoji picker
+            emojiButton.addEventListener('click', function() {
+                emojiPicker.classList.toggle('visible');
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+                    emojiPicker.classList.remove('visible');
+                }
+            });
+            
+            emojis.forEach(emoji => {
+                emoji.addEventListener('click', function() {
+                    const emojiChar = this.textContent;
+                    messageInput.value += emojiChar;
+                    messageInput.focus();
+                    
+                    // Add to recent emojis
+                    addToRecentEmojis(emojiChar);
+                    
+                    // Trigger input event to update send button
+                    const event = new Event('input', {
+                        bubbles: true,
+                        cancelable: true,
+                    });
+                    messageInput.dispatchEvent(event);
+                });
+            });
+            
+            function addToRecentEmojis(emoji) {
+                // Remove if already exists
+                recentEmojis = recentEmojis.filter(e => e !== emoji);
+                
+                // Add to beginning
+                recentEmojis.unshift(emoji);
+                
+                // Keep only the most recent 24
+                if (recentEmojis.length > 24) {
+                    recentEmojis = recentEmojis.slice(0, 24);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('samia_recent_emojis', JSON.stringify(recentEmojis));
+                
+                // Update display
+                updateRecentEmojis();
+            }
+            
+            function updateRecentEmojis() {
+                const recentEmojisContainer = document.getElementById('recent-emojis');
+                recentEmojisContainer.innerHTML = '';
+                
+                recentEmojis.forEach(emoji => {
+                    const span = document.createElement('span');
+                    span.className = 'emoji';
+                    span.textContent = emoji;
+                    span.addEventListener('click', function() {
+                        messageInput.value += emoji;
+                        messageInput.focus();
+                        
+                        // Trigger input event to update send button
+                        const event = new Event('input', {
+                            bubbles: true,
+                            cancelable: true,
+                        });
+                        messageInput.dispatchEvent(event);
+                    });
+                    recentEmojisContainer.appendChild(span);
+                });
+                
+                // If no recent emojis, show a message
+                if (recentEmojis.length === 0) {
+                    const span = document.createElement('span');
+                    span.className = 'emoji-category';
+                    span.style.gridColumn = '1 / -1';
+                    span.style.textAlign = 'center';
+                    span.textContent = 'No recent emojis';
+                    recentEmojisContainer.appendChild(span);
+                }
+            }
+            
+            // Tab switching in emoji picker
+            const emojiTabs = document.querySelectorAll('.emoji-tab');
+            emojiTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    emojiTabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Scroll to the corresponding category
+                    const category = this.getAttribute('data-category');
+                    const categoryElement = document.querySelector(`.emoji-category:contains('${getCategoryName(category)}')`);
+                    if (categoryElement) {
+                        categoryElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+            
+            function getCategoryName(category) {
+                switch (category) {
+                    case 'recent': return 'Recently Used';
+                    case 'smileys': return 'Smileys & Emotions';
+                    case 'love': return 'Love & Hearts';
+                    case 'animals': return 'Animals & Nature';
+                    case 'food': return 'Food & Drink';
+                    case 'activities': return 'Activities';
+                    default: return '';
+                }
+            }
+            
+            // Back button
+            backButton.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+            
+            // Web Worker for API calls
+            const workerCode = `
+                self.onmessage = function(e) {
+                    const { prompt, endpoint, message } = e.data;
+                    
+                    fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [
+                                {
+                                    parts: [
+                                        {
+                                            text: prompt + "\\n\\nUser: " + message + "\\nSamia:"
+                                        }
+                                    ]
+                                }
+                            ]
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(\`HTTP error! status: \${response.status}\`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        self.postMessage({ success: true, data });
+                    })
+                    .catch(error => {
+                        self.postMessage({ success: false, error: error.message });
+                    });
+                };
+            `;
+            
+            const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(workerBlob);
+            const worker = new Worker(workerUrl);
+            
+            worker.onmessage = function(e) {
+                const { success, data, error } = e.data;
+                
+                hideTyping();
+                
+                if (!success) {
+                    addMessage({ error: true, message: `API Error: ${error}` }, false, true);
+                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                    return;
+                }
+                
+                try {
+                    // Extract the response text from Gemini API response format
+                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
+                        throw new Error('Invalid response format from Gemini API');
+                    }
+                    
+                    // Get the raw text from the response
+                    let responseText = data.candidates[0].content.parts[0].text.trim();
+                    
+                    // Remove "Aiyoo!" or similar phrases from the beginning of the response
+                    responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
+                    
+                    addMessage(responseText, false);
+                    
+                    // Show message received animation
+                    profilePic.classList.add('message-received');
+                    setTimeout(() => {
+                        profilePic.classList.remove('message-received');
+                    }, 300);
+                    
+                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                } catch (error) {
+                    console.error("Response Processing Error:", error);
+                    addMessage({ error: true, message: `Error processing response: ${error.message}` }, false, true);
+                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                }
+            };
+            
+            async function sendToGemini(message) {
+                statusElement.innerHTML = `<div class="status-dot"></div>Typing...`;
+                profilePic.classList.add('typing');
+                
+                showTyping();
+                
+                // Use Web Worker for API call
+                worker.postMessage({
+                    prompt: basePrompt,
+                    endpoint: GEMINI_API_ENDPOINT,
+                    message: message
+                });
+            }
+            
+            function addMessage(text, isUser, isError = false) {
+                const container = document.createElement('div');
+                container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
+                
+                if (!isUser && !isError) {
+                    const messageInfo = document.createElement('div');
+                    messageInfo.className = 'message-info';
+                    messageInfo.innerHTML = `<div class="message-sender">Samia Afroz 💖</div>`;
+                    container.appendChild(messageInfo);
+                }
+                
+                const message = document.createElement('div');
+                message.className = `message ${isUser ? 'user-message' : 'bot-message'} ${isError ? 'error-message' : ''}`;
+                
+                // Process content based on type
+                let messageContent = '';
+                if (typeof text === 'object' && text.error) {
+                    messageContent = text.message;
+                } else {
+                    // Apply Markdown rendering for bot messages only
+                    if (!isUser && !isError) {
+                        messageContent = marked.parse(text);
+                    } else {
+                        messageContent = text;
+                    }
+                }
+                
+                message.innerHTML = messageContent + `<div class="message-time">${getCurrentTime()}</div>`;
+                
+                container.appendChild(message);
+                chatMessages.appendChild(container);
+                
+                // Add seen indicator for user messages
+                if (isUser) {
+                    const seenContainer = document.createElement('div');
+                    seenContainer.className = 'message-seen';
+                    
+                    const seenIndicator = document.createElement('div');
+                    seenIndicator.className = 'seen-indicator';
+                    seenIndicator.innerHTML = `<img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">`;
+                    
+                    seenContainer.appendChild(seenIndicator);
+                    container.appendChild(seenContainer);
+                }
+                
+                if (isScrolledToBottom) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    scrollToBottomBtn.classList.add('visible');
+                }
+                
+                return container;
+            }
+            
+            function showTyping() {
+                const container = document.createElement('div');
+                container.className = 'typing-indicator';
+                container.id = 'typing-indicator';
+                container.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                
+                chatMessages.appendChild(container);
+                
+                if (isScrolledToBottom) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                return container;
+            }
+            
+            function hideTyping() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+                profilePic.classList.remove('typing');
+            }
+            
+            async function sendMessage() {
+                const messageText = messageInput.value.trim();
+                if (messageText === '') return;
+                
+                addMessage(messageText, true);
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                sendButton.classList.remove('active');
+                sendButton.disabled = true;
+                
+                await sendToGemini(messageText);
+            }
+            
+            function getCurrentTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                return hours + ':' + minutes + ' ' + ampm;
+            }
+            
+            async function initChat() {
+                // Get user name
+                const userName = localStorage.getItem('samia_user_name') || 'friend';
+                
+                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
+            }
+            
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!sendButton.disabled) {
+                        sendMessage();
+                    }
+                }
+            });
+            
+            // Initialize chat
+            initChat();
+            
+            // Helper for emoji tab selection
+            document.querySelectorAll('.emoji-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Virtual scrolling for performance
+            const messageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        // If message is not visible, reduce its DOM complexity
+                        const message = entry.target;
+                        if (message.dataset.simplified !== 'true') {
+                            message.dataset.originalContent = message.innerHTML;
+                            message.dataset.simplified = 'true';
+                            
+                            // Keep a simplified version for off-screen messages
+                            const isUserMessage = message.classList.contains('user-message');
+                            message.innerHTML = isUserMessage ? 
+                                '<div class="placeholder">User message</div>' : 
+                                '<div class="placeholder">Samia message</div>';
+                        }
+                    } else {
+                        // Restore original content when visible again
+                        const message = entry.target;
+                        if (message.dataset.simplified === 'true') {
+                            message.innerHTML = message.dataset.originalContent;
+                            message.dataset.simplified = 'false';
+                        }
+                    }
+                });
+            }, { rootMargin: '100px' });
+            
+            // Apply virtual scrolling to messages
+            function observeMessages() {
+                document.querySelectorAll('.message').forEach(message => {
+                    messageObserver.observe(message);
+                });
+            }
+            
+            // Set up a mutation observer to watch for new messages
+            const chatObserver = new MutationObserver((mutations) => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1 && node.classList.contains('message-container')) {
+                                const message = node.querySelector('.message');
+                                if (message) {
+                                    messageObserver.observe(message);
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            
+            chatObserver.observe(chatMessages, { childList: true });
+        });
+    </script>
+</body>
+</html>
