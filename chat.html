@@ -533,34 +533,9 @@
             box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
         }
         
-        .input-actions {
-            display: flex;
-            padding: 8px 4px 8px 12px;
-        }
-        
-        .input-button {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-full);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            background: none;
-            border: none;
-            margin-right: 4px;
-        }
-        
-        .input-button:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            color: var(--accent-color);
-        }
-        
         .message-input {
             flex: 1;
-            padding: 12px 0;
+            padding: 12px 16px;
             border: none;
             background-color: transparent;
             outline: none;
@@ -638,98 +613,6 @@
             background-color: var(--input-bg);
         }
         
-        /* Emoji picker */
-        .emoji-picker {
-            position: fixed;
-            bottom: 70px;
-            left: 16px;
-            background-color: var(--background);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            width: 320px;
-            max-width: calc(100vw - 32px);
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 110;
-            display: none;
-            transition: background-color var(--transition-normal);
-        }
-        
-        @media (min-width: 768px) {
-            .emoji-picker {
-                left: calc(50% - 384px + 16px);
-            }
-        }
-        
-        .emoji-picker.visible {
-            display: block;
-            animation: fadeIn 0.2s ease-out;
-        }
-        
-        .emoji-tabs {
-            display: flex;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            background-color: var(--background);
-            z-index: 1;
-            transition: background-color var(--transition-normal);
-        }
-        
-        .emoji-tab {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color var(--transition-fast);
-        }
-        
-        .emoji-tab.active {
-            border-bottom: 2px solid var(--accent-color);
-        }
-        
-        .emoji-tab:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-        
-        .emoji-category {
-            padding: 8px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            transition: color var(--transition-normal);
-        }
-        
-        .emoji-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            padding: 8px;
-        }
-        
-        .emoji {
-            width: 100%;
-            aspect-ratio: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border-radius: var(--radius-sm);
-            transition: background-color var(--transition-fast), transform var(--transition-fast);
-            font-size: 20px;
-        }
-        
-        .emoji:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            transform: scale(1.2);
-        }
-        
-        /* Hashtag styling */
-        .hashtag {
-            color: var(--accent-color);
-            font-weight: 500;
-        }
-        
         /* Mobile optimizations */
         @media (max-width: 767px) {
             .message {
@@ -742,13 +625,6 @@
             
             .chat-input-container {
                 padding: 10px 12px;
-            }
-            
-            .emoji-picker {
-                left: 0;
-                right: 0;
-                margin: 0 auto;
-                width: calc(100% - 24px);
             }
         }
         
@@ -805,192 +681,10 @@
         
         <div class="chat-input-container">
             <div class="input-wrapper">
-                <div class="input-actions">
-                    <button class="input-button" id="emoji-button">
-                        <i class="far fa-smile"></i>
-                    </button>
-                    <button class="input-button" id="image-button">
-                        <i class="far fa-image"></i>
-                    </button>
-                </div>
                 <textarea class="message-input" placeholder="Type a message to Samia..." id="message-input" rows="1"></textarea>
                 <button class="send-button" id="send-button" disabled>
                     <i class="fas fa-paper-plane"></i>
                 </button>
-            </div>
-        </div>
-        
-        <div class="emoji-picker" id="emoji-picker">
-            <div class="emoji-tabs">
-                <div class="emoji-tab active" data-category="recent">
-                    <i class="far fa-clock"></i>
-                </div>
-                <div class="emoji-tab" data-category="smileys">
-                    <i class="far fa-smile"></i>
-                </div>
-                <div class="emoji-tab" data-category="love">
-                    <i class="far fa-heart"></i>
-                </div>
-                <div class="emoji-tab" data-category="animals">
-                    <i class="fas fa-paw"></i>
-                </div>
-                <div class="emoji-tab" data-category="food">
-                    <i class="fas fa-pizza-slice"></i>
-                </div>
-                <div class="emoji-tab" data-category="activities">
-                    <i class="fas fa-futbol"></i>
-                </div>
-            </div>
-            <div class="emoji-content">
-                <div class="emoji-category">Recently Used</div>
-                <div class="emoji-grid" id="recent-emojis">
-                    <!-- Will be populated with recently used emojis -->
-                </div>
-                
-                <div class="emoji-category">Smileys & Emotions</div>
-                <div class="emoji-grid" id="smiley-emojis">
-                    <span class="emoji">😀</span>
-                    <span class="emoji">😃</span>
-                    <span class="emoji">😄</span>
-                    <span class="emoji">😁</span>
-                    <span class="emoji">😆</span>
-                    <span class="emoji">😅</span>
-                    <span class="emoji">🤣</span>
-                    <span class="emoji">😂</span>
-                    <span class="emoji">🙂</span>
-                    <span class="emoji">🙃</span>
-                    <span class="emoji">😉</span>
-                    <span class="emoji">😊</span>
-                    <span class="emoji">😇</span>
-                    <span class="emoji">🥰</span>
-                    <span class="emoji">😍</span>
-                    <span class="emoji">🤩</span>
-                    <span class="emoji">😘</span>
-                    <span class="emoji">😗</span>
-                    <span class="emoji">😚</span>
-                    <span class="emoji">😙</span>
-                    <span class="emoji">😋</span>
-                    <span class="emoji">😛</span>
-                    <span class="emoji">😜</span>
-                    <span class="emoji">🤪</span>
-                    <span class="emoji">😝</span>
-                    <span class="emoji">🤑</span>
-                    <span class="emoji">🤗</span>
-                    <span class="emoji">🤭</span>
-                    <span class="emoji">🤫</span>
-                    <span class="emoji">🤔</span>
-                    <span class="emoji">🤐</span>
-                    <span class="emoji">🤨</span>
-                    <span class="emoji">😐</span>
-                    <span class="emoji">😑</span>
-                    <span class="emoji">😶</span>
-                    <span class="emoji">😏</span>
-                    <span class="emoji">😒</span>
-                    <span class="emoji">🙄</span>
-                    <span class="emoji">😬</span>
-                    <span class="emoji">🤥</span>
-                    <span class="emoji">😌</span>
-                    <span class="emoji">😔</span>
-                    <span class="emoji">😪</span>
-                    <span class="emoji">🤤</span>
-                    <span class="emoji">😴</span>
-                    <span class="emoji">😷</span>
-                    <span class="emoji">🤒</span>
-                    <span class="emoji">🤕</span>
-                    <span class="emoji">🤢</span>
-                    <span class="emoji">🤮</span>
-                    <span class="emoji">🤧</span>
-                    <span class="emoji">🥵</span>
-                    <span class="emoji">🥶</span>
-                    <span class="emoji">🥴</span>
-                    <span class="emoji">😵</span>
-                    <span class="emoji">🤯</span>
-                    <span class="emoji">🤠</span>
-                    <span class="emoji">🥳</span>
-                    <span class="emoji">😎</span>
-                    <span class="emoji">🤓</span>
-                    <span class="emoji">🧐</span>
-                    <span class="emoji">😕</span>
-                    <span class="emoji">😟</span>
-                    <span class="emoji">🙁</span>
-                    <span class="emoji">☹️</span>
-                    <span class="emoji">😮</span>
-                    <span class="emoji">😯</span>
-                    <span class="emoji">😲</span>
-                    <span class="emoji">😳</span>
-                    <span class="emoji">🥺</span>
-                    <span class="emoji">😦</span>
-                    <span class="emoji">😧</span>
-                    <span class="emoji">😨</span>
-                    <span class="emoji">😰</span>
-                    <span class="emoji">😥</span>
-                    <span class="emoji">😢</span>
-                    <span class="emoji">😭</span>
-                    <span class="emoji">😱</span>
-                    <span class="emoji">😖</span>
-                    <span class="emoji">😣</span>
-                    <span class="emoji">😞</span>
-                    <span class="emoji">😓</span>
-                    <span class="emoji">😩</span>
-                    <span class="emoji">😫</span>
-                    <span class="emoji">🥱</span>
-                    <span class="emoji">😤</span>
-                    <span class="emoji">😡</span>
-                    <span class="emoji">😠</span>
-                    <span class="emoji">🤬</span>
-                    <span class="emoji">😈</span>
-                    <span class="emoji">👿</span>
-                    <span class="emoji">💀</span>
-                    <span class="emoji">☠️</span>
-                    <span class="emoji">💩</span>
-                    <span class="emoji">🤡</span>
-                    <span class="emoji">👹</span>
-                    <span class="emoji">👺</span>
-                    <span class="emoji">👻</span>
-                    <span class="emoji">👽</span>
-                    <span class="emoji">👾</span>
-                    <span class="emoji">🤖</span>
-                    <span class="emoji">😺</span>
-                    <span class="emoji">😸</span>
-                    <span class="emoji">😹</span>
-                    <span class="emoji">😻</span>
-                    <span class="emoji">😼</span>
-                    <span class="emoji">😽</span>
-                    <span class="emoji">🙀</span>
-                    <span class="emoji">😿</span>
-                    <span class="emoji">😾</span>
-                </div>
-                
-                <div class="emoji-category">Love & Hearts</div>
-                <div class="emoji-grid" id="love-emojis">
-                    <span class="emoji">❤️</span>
-                    <span class="emoji">🧡</span>
-                    <span class="emoji">💛</span>
-                    <span class="emoji">💚</span>
-                    <span class="emoji">💙</span>
-                    <span class="emoji">💜</span>
-                    <span class="emoji">🖤</span>
-                    <span class="emoji">🤍</span>
-                    <span class="emoji">🤎</span>
-                    <span class="emoji">💔</span>
-                    <span class="emoji">❣️</span>
-                    <span class="emoji">💕</span>
-                    <span class="emoji">💞</span>
-                    <span class="emoji">💓</span>
-                    <span class="emoji">💗</span>
-                    <span class="emoji">💖</span>
-                    <span class="emoji">💘</span>
-                    <span class="emoji">💝</span>
-                    <span class="emoji">💟</span>
-                    <span class="emoji">💌</span>
-                    <span class="emoji">💋</span>
-                    <span class="emoji">💯</span>
-                    <span class="emoji">💢</span>
-                    <span class="emoji">💥</span>
-                    <span class="emoji">💫</span>
-                    <span class="emoji">💦</span>
-                    <span class="emoji">💨</span>
-                </div>
             </div>
         </div>
     </div>
@@ -1005,9 +699,6 @@
             const scrollToBottomBtn = document.getElementById('scroll-to-bottom');
             const themeToggle = document.getElementById('theme-toggle');
             const themeIcon = themeToggle.querySelector('i');
-            const emojiButton = document.getElementById('emoji-button');
-            const emojiPicker = document.getElementById('emoji-picker');
-            const emojis = document.querySelectorAll('.emoji');
             const profilePic = document.querySelector('.profile-pic');
             const backButton = document.getElementById('back-button');
             
@@ -1019,6 +710,9 @@
             
             // Get the updated prompt from localStorage
             const basePrompt = localStorage.getItem('samia_updated_prompt') || '';
+            
+            // Conversation history array to maintain state
+            let conversationHistory = [];
             
             // Check for existing theme preference
             if (localStorage.getItem('samia_theme') === 'dark') {
@@ -1032,10 +726,6 @@
                 breaks: true,
                 gfm: true
             });
-            
-            // Recent emojis
-            let recentEmojis = JSON.parse(localStorage.getItem('samia_recent_emojis')) || [];
-            updateRecentEmojis();
             
             // Scroll handling
             let isScrolledToBottom = true;
@@ -1069,33 +759,7 @@
                     sendButton.classList.remove('active');
                     sendButton.disabled = true;
                 }
-                
-                // Highlight hashtags
-                highlightHashtags();
             });
-            
-            function highlightHashtags() {
-                const text = messageInput.value;
-                const hashtags = text.match(/#\w+/g);
-                
-                if (hashtags) {
-                    // Handle specific hashtag triggers
-                    if (hashtags.includes('#pic')) {
-                        document.getElementById('image-button').style.color = '#0084FF';
-                    } else {
-                        document.getElementById('image-button').style.color = '';
-                    }
-                    
-                    if (hashtags.includes('#mood')) {
-                        // Insert "How are you feeling?" text
-                        if (!text.includes("How are you feeling?")) {
-                            messageInput.value += " How are you feeling?";
-                            messageInput.style.height = 'auto';
-                            messageInput.style.height = (messageInput.scrollHeight) + 'px';
-                        }
-                    }
-                }
-            }
             
             // Theme toggle
             themeToggle.addEventListener('click', function() {
@@ -1112,118 +776,6 @@
                 }
             });
             
-            // Emoji picker
-            emojiButton.addEventListener('click', function() {
-                emojiPicker.classList.toggle('visible');
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
-                    emojiPicker.classList.remove('visible');
-                }
-            });
-            
-            emojis.forEach(emoji => {
-                emoji.addEventListener('click', function() {
-                    const emojiChar = this.textContent;
-                    messageInput.value += emojiChar;
-                    messageInput.focus();
-                    
-                    // Add to recent emojis
-                    addToRecentEmojis(emojiChar);
-                    
-                    // Trigger input event to update send button
-                    const event = new Event('input', {
-                        bubbles: true,
-                        cancelable: true,
-                    });
-                    messageInput.dispatchEvent(event);
-                });
-            });
-            
-            function addToRecentEmojis(emoji) {
-                // Remove if already exists
-                recentEmojis = recentEmojis.filter(e => e !== emoji);
-                
-                // Add to beginning
-                recentEmojis.unshift(emoji);
-                
-                // Keep only the most recent 24
-                if (recentEmojis.length > 24) {
-                    recentEmojis = recentEmojis.slice(0, 24);
-                }
-                
-                // Save to localStorage
-                localStorage.setItem('samia_recent_emojis', JSON.stringify(recentEmojis));
-                
-                // Update display
-                updateRecentEmojis();
-            }
-            
-            function updateRecentEmojis() {
-                const recentEmojisContainer = document.getElementById('recent-emojis');
-                recentEmojisContainer.innerHTML = '';
-                
-                recentEmojis.forEach(emoji => {
-                    const span = document.createElement('span');
-                    span.className = 'emoji';
-                    span.textContent = emoji;
-                    span.addEventListener('click', function() {
-                        messageInput.value += emoji;
-                        messageInput.focus();
-                        
-                        // Trigger input event to update send button
-                        const event = new Event('input', {
-                            bubbles: true,
-                            cancelable: true,
-                        });
-                        messageInput.dispatchEvent(event);
-                    });
-                    recentEmojisContainer.appendChild(span);
-                });
-                
-                // If no recent emojis, show a message
-                if (recentEmojis.length === 0) {
-                    const span = document.createElement('span');
-                    span.className = 'emoji-category';
-                    span.style.gridColumn = '1 / -1';
-                    span.style.textAlign = 'center';
-                    span.textContent = 'No recent emojis';
-                    recentEmojisContainer.appendChild(span);
-                }
-            }
-            
-            // Tab switching in emoji picker
-            const emojiTabs = document.querySelectorAll('.emoji-tab');
-            emojiTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    emojiTabs.forEach(t => t.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    
-                    // Scroll to the corresponding category
-                    const category = this.getAttribute('data-category');
-                    const categoryElement = document.querySelector(`.emoji-category:contains('${getCategoryName(category)}')`);
-                    if (categoryElement) {
-                        categoryElement.scrollIntoView({ behavior: 'smooth' });
-                    }
-                });
-            });
-            
-            function getCategoryName(category) {
-                switch (category) {
-                    case 'recent': return 'Recently Used';
-                    case 'smileys': return 'Smileys & Emotions';
-                    case 'love': return 'Love & Hearts';
-                    case 'animals': return 'Animals & Nature';
-                    case 'food': return 'Food & Drink';
-                    case 'activities': return 'Activities';
-                    default: return '';
-                }
-            }
-            
             // Back button
             backButton.addEventListener('click', function() {
                 window.location.href = 'index.html';
@@ -1232,7 +784,29 @@
             // Web Worker for API calls
             const workerCode = `
                 self.onmessage = function(e) {
-                    const { prompt, endpoint, message } = e.data;
+                    const { prompt, endpoint, conversationHistory } = e.data;
+                    
+                    // Prepare the conversation for the API
+                    const formattedConversation = [];
+                    
+                    // Add the base prompt as system message
+                    formattedConversation.push({
+                        role: "user",
+                        parts: [{ text: prompt }]
+                    });
+                    
+                    formattedConversation.push({
+                        role: "model",
+                        parts: [{ text: "I'll be Samia, your Bangladeshi girlfriend. I'll respond as described." }]
+                    });
+                    
+                    // Add all conversation history
+                    for (const message of conversationHistory) {
+                        formattedConversation.push({
+                            role: message.isUser ? "user" : "model",
+                            parts: [{ text: message.text }]
+                        });
+                    }
                     
                     fetch(endpoint, {
                         method: 'POST',
@@ -1240,15 +814,12 @@
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            contents: [
-                                {
-                                    parts: [
-                                        {
-                                            text: prompt + "\\n\\nUser: " + message + "\\nSamia:"
-                                        }
-                                    ]
-                                }
-                            ]
+                            contents: formattedConversation,
+                            generationConfig: {
+                                temperature: 0.7,
+                                topP: 0.95,
+                                topK: 40
+                            }
                         })
                     })
                     .then(response => {
@@ -1293,6 +864,16 @@
                     // Remove "Aiyoo!" or similar phrases from the beginning of the response
                     responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
                     
+                    // Add to conversation history
+                    conversationHistory.push({
+                        text: responseText,
+                        isUser: false,
+                        timestamp: new Date()
+                    });
+                    
+                    // Save conversation history to localStorage
+                    saveConversationHistory();
+                    
                     addMessage(responseText, false);
                     
                     // Show message received animation
@@ -1309,21 +890,64 @@
                 }
             };
             
+            function saveConversationHistory() {
+                // Only keep the last 20 messages to avoid exceeding API limits
+                if (conversationHistory.length > 20) {
+                    conversationHistory = conversationHistory.slice(conversationHistory.length - 20);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('samia_conversation_history', JSON.stringify(conversationHistory));
+            }
+            
+            function loadConversationHistory() {
+                const savedHistory = localStorage.getItem('samia_conversation_history');
+                if (savedHistory) {
+                    try {
+                        conversationHistory = JSON.parse(savedHistory);
+                        
+                        // Display the loaded conversation
+                        conversationHistory.forEach(message => {
+                            addMessage(message.text, message.isUser, false, false);
+                        });
+                        
+                        // Scroll to bottom after loading history
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } catch (error) {
+                        console.error("Error loading conversation history:", error);
+                        // If there's an error, start fresh
+                        conversationHistory = [];
+                    }
+                }
+            }
+            
             async function sendToGemini(message) {
                 statusElement.innerHTML = `<div class="status-dot"></div>Typing...`;
                 profilePic.classList.add('typing');
                 
                 showTyping();
                 
+                // Add user message to conversation history
+                conversationHistory.push({
+                    text: message,
+                    isUser: true,
+                    timestamp: new Date()
+                });
+                
+                // Save conversation history
+                saveConversationHistory();
+                
                 // Use Web Worker for API call
                 worker.postMessage({
                     prompt: basePrompt,
                     endpoint: GEMINI_API_ENDPOINT,
-                    message: message
+                    conversationHistory: conversationHistory
                 });
             }
             
-            function addMessage(text, isUser, isError = false) {
+            function addMessage(text, isUser, isError = false, addToDOM = true) {
+                if (!addToDOM) return; // Skip DOM operations when loading history
+                
                 const container = document.createElement('div');
                 container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
                 
@@ -1428,10 +1052,16 @@
             }
             
             async function initChat() {
-                // Get user name
-                const userName = localStorage.getItem('samia_user_name') || 'friend';
+                // Load existing conversation history
+                loadConversationHistory();
                 
-                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
+                // If no history, start a new conversation
+                if (conversationHistory.length === 0) {
+                    // Get user name
+                    const userName = localStorage.getItem('samia_user_name') || 'friend';
+                    
+                    await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
+                }
             }
             
             // Event listeners
@@ -1448,14 +1078,6 @@
             
             // Initialize chat
             initChat();
-            
-            // Helper for emoji tab selection
-            document.querySelectorAll('.emoji-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.emoji-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
             
             // Virtual scrolling for performance
             const messageObserver = new IntersectionObserver((entries) => {
@@ -1532,4 +1154,3 @@
         });
     </script>
 </body>
-</html>
