@@ -171,8 +171,8 @@
             object-fit: cover;
         }
         
-        /* Modified: Only show green dot when typing, not with "Active now" */
-        .profile-pic.typing::after {
+        /* Restored: Green circle for online status */
+        .profile-pic::after {
             content: '';
             position: absolute;
             bottom: 0;
@@ -215,7 +215,7 @@
             transition: color var(--transition-normal);
         }
         
-        /* Modified: Status dot only shows when not "Active now" */
+        /* Restored: Status dot always visible */
         .status-dot {
             width: 8px;
             height: 8px;
@@ -224,12 +224,7 @@
             margin-right: 6px;
             flex-shrink: 0;
             animation: pulse 2s infinite;
-            display: none; /* Hidden by default */
-        }
-        
-        /* Show status dot only when typing */
-        .status.typing .status-dot {
-            display: block;
+            display: block; /* Always visible */
         }
         
         .header-actions {
@@ -294,6 +289,7 @@
             flex-direction: column;
             animation: fadeIn 0.3s ease-out;
             max-width: 100%;
+            position: relative;
         }
         
         @keyframes fadeIn {
@@ -376,24 +372,39 @@
             padding: 0;
         }
         
+        /* Enhanced: Improved user message animation */
         .user-message {
             background: var(--user-bubble-gradient);
             color: var(--text-on-accent);
             margin-left: auto;
             border-bottom-right-radius: 4px;
-            animation: slideInRight 0.3s ease-out;
+            animation: slideInRightBounce 0.3s ease-out;
+            position: relative;
+        }
+        
+        @keyframes slideInRightBounce {
+            0% { transform: translateX(20px); opacity: 0; }
+            70% { transform: translateX(-2px); opacity: 1; }
+            100% { transform: translateX(0); opacity: 1; }
         }
         
         .user-message-container {
             align-items: flex-end;
         }
         
+        /* Enhanced: Improved bot message animation */
         .bot-message {
             background-color: var(--bot-bubble);
             color: var(--text-primary);
             margin-right: auto;
             border-bottom-left-radius: 4px;
-            animation: slideInLeft 0.3s ease-out;
+            animation: slideInLeftBounce 0.3s ease-out;
+        }
+        
+        @keyframes slideInLeftBounce {
+            0% { transform: translateX(-20px); opacity: 0; }
+            70% { transform: translateX(2px); opacity: 1; }
+            100% { transform: translateX(0); opacity: 1; }
         }
         
         .bot-message-container {
@@ -419,16 +430,6 @@
             background-color: #FA383E;
             color: white;
             border: none;
-        }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes slideInLeft {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
         }
         
         .message-info {
@@ -477,34 +478,57 @@
             color: rgba(255, 255, 255, 0.8);
         }
         
-        /* New: Global seen indicator that moves between messages */
-        #global-seen-indicator {
+        /* New: Messenger-style seen indicator */
+        .seen-indicator {
             position: absolute;
             width: 16px;
             height: 16px;
             border-radius: var(--radius-full);
             overflow: hidden;
+            bottom: -8px;
+            right: 8px;
             z-index: 5;
+            border: 2px solid var(--background);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
         }
         
-        #global-seen-indicator img {
+        .seen-indicator img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         
-        /* New: Animation for seen indicator movement */
-        @keyframes seenAvatarMove {
-            0% { transform: translateY(-20px); opacity: 0; }
-            70% { transform: translateY(3px); }
-            100% { transform: translateY(0); opacity: 1; }
+        /* Show seen indicator on the last user message */
+        .user-message-container.last-user-message .seen-indicator {
+            opacity: 1;
+            transform: scale(1);
         }
         
-        #global-seen-indicator.animate {
-            animation: seenAvatarMove 0.4s ease-out;
+        /* New: Message details panel on click */
+        .message-details {
+            position: absolute;
+            bottom: -40px;
+            right: 0;
+            background-color: var(--background);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .user-message-container.show-details .message-details {
             opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
         }
         
         .typing-indicator {
@@ -518,6 +542,7 @@
             transition: background-color var(--transition-normal);
         }
         
+        /* Enhanced typing indicator animation */
         .typing-dot {
             width: 8px;
             height: 8px;
@@ -525,6 +550,7 @@
             border-radius: var(--radius-full);
             margin: 0 2px;
             animation: typingAnimation 1.4s infinite ease-in-out;
+            opacity: 0.6;
         }
         
         .typing-dot:nth-child(1) { animation-delay: 0s; }
@@ -532,11 +558,11 @@
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         
         @keyframes typingAnimation {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+            30% { transform: translateY(-5px); opacity: 1; }
         }
         
-        /* New fixed input container with improved mobile keyboard handling */
+        /* Fixed input container with improved mobile keyboard handling */
         .chat-input-container {
             position: fixed;
             bottom: 0;
@@ -548,10 +574,10 @@
             align-items: flex-end;
             border-top: 1px solid rgba(0, 0, 0, 0.1);
             z-index: 100;
-            transition: background-color var(--transition-normal), transform 0.3s ease;
+            transition: background-color var(--transition-normal);
             max-width: 100%;
             margin: 0 auto;
-            will-change: background-color, transform;
+            will-change: transform;
         }
         
         @media (min-width: 768px) {
@@ -560,11 +586,6 @@
                 left: 50%;
                 transform: translateX(-50%);
             }
-        }
-        
-        /* Add class for when keyboard is visible */
-        body.keyboard-visible .chat-input-container {
-            position: absolute;
         }
         
         .input-wrapper {
@@ -581,6 +602,7 @@
             box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.2);
         }
         
+        /* Enhanced input animation */
         .message-input {
             flex: 1;
             padding: 12px 16px;
@@ -593,13 +615,14 @@
             max-height: 120px;
             min-height: 20px;
             line-height: 1.4;
-            transition: color var(--transition-normal);
+            transition: color var(--transition-normal), height 0.2s ease-in-out;
         }
         
         .message-input::placeholder {
             color: var(--text-secondary);
         }
         
+        /* Enhanced send button animation */
         .send-button {
             width: 36px;
             height: 36px;
@@ -613,6 +636,7 @@
             background-color: transparent;
             border: none;
             margin-left: 4px;
+            transform-origin: center;
         }
         
         .send-button.active {
@@ -623,6 +647,21 @@
         
         .send-button:hover:not(:disabled) {
             background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Icon transition animation */
+        .send-button i {
+            transition: transform 0.3s ease;
+        }
+        
+        .send-button.active i {
+            animation: sendButtonPulse 0.3s ease;
+        }
+        
+        @keyframes sendButtonPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
         
         .scroll-to-bottom {
@@ -724,11 +763,6 @@
             <!-- Messages will appear here -->
         </div>
         
-        <!-- New global seen indicator that will move between messages -->
-        <div id="global-seen-indicator">
-            <img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-        </div>
-        
         <button class="scroll-to-bottom" id="scroll-to-bottom">
             <i class="fas fa-chevron-down"></i>
         </button>
@@ -755,7 +789,6 @@
             const themeIcon = themeToggle.querySelector('i');
             const profilePic = document.querySelector('.profile-pic');
             const backButton = document.getElementById('back-button');
-            const globalSeenIndicator = document.getElementById('global-seen-indicator');
             
             // Google Gemini API Key
             const GEMINI_API_KEY = 'AIzaSyA4noABIgUKn19XEQqP8aVRkmc7VfvF5Cs';
@@ -766,7 +799,7 @@
             // Get the updated prompt from localStorage
             const basePrompt = localStorage.getItem('samia_updated_prompt') || '';
             
-            // Conversation history array to maintain state
+            // Conversation history array to maintain state (not stored in localStorage)
             let conversationHistory = [];
             
             // Track the last user message container for seen indicator
@@ -805,14 +838,23 @@
                 });
             });
             
-            // Input handling
+            // Enhanced input handling with smooth animation
             messageInput.addEventListener('input', function() {
+                const previousHeight = this.style.height;
                 this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
+                const newHeight = this.scrollHeight + 'px';
+                this.style.height = previousHeight;
+                
+                // Use requestAnimationFrame for smoother height transition
+                requestAnimationFrame(() => {
+                    this.style.height = newHeight;
+                });
                 
                 if (this.value.trim() !== '') {
-                    sendButton.classList.add('active');
-                    sendButton.disabled = false;
+                    if (!sendButton.classList.contains('active')) {
+                        sendButton.classList.add('active');
+                        sendButton.disabled = false;
+                    }
                 } else {
                     sendButton.classList.remove('active');
                     sendButton.disabled = true;
@@ -936,12 +978,6 @@
                         timestamp: new Date()
                     });
                     
-                    // Save conversation history to localStorage
-                    saveConversationHistory();
-                    
-                    // Hide seen indicator when bot replies
-                    hideSeenIndicator();
-                    
                     addMessage(responseText, false);
                     
                     // Show message received animation
@@ -958,141 +994,7 @@
                 }
             };
             
-            function saveConversationHistory() {
-                // Only keep the last 20 messages to avoid exceeding API limits
-                if (conversationHistory.length > 20) {
-                    conversationHistory = conversationHistory.slice(conversationHistory.length - 20);
-                }
-                
-                // Save to localStorage
-                localStorage.setItem('samia_conversation_history', JSON.stringify(conversationHistory));
-            }
-            
-            function loadConversationHistory() {
-                const savedHistory = localStorage.getItem('samia_conversation_history');
-                if (savedHistory) {
-                    try {
-                        conversationHistory = JSON.parse(savedHistory);
-                        
-                        // Display the loaded conversation
-                        conversationHistory.forEach((message, index) => {
-                            const container = addMessage(message.text, message.isUser, false, false);
-                            
-                            // Track the last user message for seen indicator
-                            if (message.isUser && index === conversationHistory.length - 1) {
-                                lastUserMessageContainer = container;
-                            }
-                        });
-                        
-                        // If the last message was from user, show seen indicator
-                        if (lastUserMessageContainer && conversationHistory.length > 0 && 
-                            conversationHistory[conversationHistory.length - 1].isUser) {
-                            showSeenIndicator(lastUserMessageContainer);
-                        }
-                        
-                        // Scroll to bottom after loading history
-                        setTimeout(() => {
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                        }, 100);
-                    } catch (error) {
-                        console.error("Error loading conversation history:", error);
-                    }
-                }
-            }
-            
-            // New function to show the seen indicator
-            function showSeenIndicator(messageContainer) {
-                if (!messageContainer) return;
-                
-                // Get position for the seen indicator
-                const rect = messageContainer.getBoundingClientRect();
-                const chatRect = chatMessages.getBoundingClientRect();
-                
-                // Position the indicator at the bottom right of the message
-                globalSeenIndicator.style.left = (rect.right - 20) + 'px';
-                globalSeenIndicator.style.top = (rect.bottom - chatRect.top + chatMessages.scrollTop - 20) + 'px';
-                
-                // Remove any existing animation class
-                globalSeenIndicator.classList.remove('animate');
-                
-                // Trigger reflow to restart animation
-                void globalSeenIndicator.offsetWidth;
-                
-                // Add animation class
-                globalSeenIndicator.classList.add('animate');
-            }
-            
-            // New function to hide the seen indicator
-            function hideSeenIndicator() {
-                globalSeenIndicator.classList.remove('animate');
-                globalSeenIndicator.style.opacity = '0';
-            }
-            
-            // Modified addMessage function to handle seen indicator
-            function addMessage(message, isUser, isError = false, shouldScroll = true) {
-                // Store current scroll position and distance from bottom
-                const scrollTop = chatMessages.scrollTop;
-                const scrollHeight = chatMessages.scrollHeight;
-                const clientHeight = chatMessages.clientHeight;
-                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-                
-                const container = document.createElement('div');
-                container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
-                
-                if (isError) {
-                    container.innerHTML = `
-                        <div class="message error-message">
-                            ${message.message}
-                            <div class="message-time">${getCurrentTime()}</div>
-                        </div>
-                    `;
-                } else {
-                    let messageContent = '';
-                    
-                    try {
-                        // Use marked.js to render markdown
-                        messageContent = marked.parse(message);
-                    } catch (error) {
-                        console.error("Markdown parsing error:", error);
-                        messageContent = message;
-                    }
-                    
-                    container.innerHTML = `
-                        <div class="message ${isUser ? 'user-message' : 'bot-message'}">
-                            ${messageContent}
-                            <div class="message-time">${getCurrentTime()}</div>
-                        </div>
-                    `;
-                }
-                
-                chatMessages.appendChild(container);
-                
-                // Only auto-scroll if user was already near bottom
-                if (shouldScroll && (isScrolledToBottom || distanceFromBottom < 100 || isUser)) {
-                    // Use requestAnimationFrame for smoother scrolling
-                    requestAnimationFrame(() => {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    });
-                }
-                
-                // If this is a user message, update the last user message container
-                // and show the seen indicator after a delay
-                if (isUser) {
-                    // Hide any existing seen indicator first
-                    hideSeenIndicator();
-                    
-                    // Update the last user message container
-                    lastUserMessageContainer = container;
-                    
-                    // Show seen indicator after a delay (simulating server response)
-                    setTimeout(() => {
-                        showSeenIndicator(container);
-                    }, 1000);
-                }
-                
-                return container;
-            }
-            
+            // Show typing indicator with enhanced animation
             function showTyping() {
                 // Update status to show typing
                 statusElement.innerHTML = `<div class="status-dot"></div>Typing...`;
@@ -1131,15 +1033,135 @@
                 profilePic.classList.remove('typing');
             }
             
+            // Update all user message containers to remove last-user-message class
+            function updateLastUserMessage(newLastMessage) {
+                // Remove the class from all message containers
+                document.querySelectorAll('.user-message-container.last-user-message').forEach(container => {
+                    container.classList.remove('last-user-message');
+                });
+                
+                // Add the class to the new last message
+                if (newLastMessage) {
+                    newLastMessage.classList.add('last-user-message');
+                    lastUserMessageContainer = newLastMessage;
+                }
+            }
+            
+            // Handle message details panel
+            function setupMessageDetailsPanel(container, isUser) {
+                if (isUser) {
+                    const message = container.querySelector('.message');
+                    
+                    // Create message details panel
+                    const detailsPanel = document.createElement('div');
+                    detailsPanel.className = 'message-details';
+                    detailsPanel.innerHTML = `Sent at ${getCurrentTime()} • Seen`;
+                    container.appendChild(detailsPanel);
+                    
+                    // Toggle details panel on click
+                    message.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        // Close any other open details panels
+                        document.querySelectorAll('.user-message-container.show-details').forEach(el => {
+                            if (el !== container) {
+                                el.classList.remove('show-details');
+                            }
+                        });
+                        
+                        // Toggle this panel
+                        container.classList.toggle('show-details');
+                    });
+                    
+                    // Close panel when clicking elsewhere
+                    document.addEventListener('click', function() {
+                        container.classList.remove('show-details');
+                    });
+                }
+            }
+            
+            // Enhanced addMessage function with Messenger-style seen indicator
+            function addMessage(message, isUser, isError = false, shouldScroll = true) {
+                // Store current scroll position and distance from bottom
+                const scrollTop = chatMessages.scrollTop;
+                const scrollHeight = chatMessages.scrollHeight;
+                const clientHeight = chatMessages.clientHeight;
+                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+                
+                const container = document.createElement('div');
+                container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
+                
+                if (isError) {
+                    container.innerHTML = `
+                        <div class="message error-message">
+                            ${message.message}
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
+                } else {
+                    let messageContent = '';
+                    
+                    try {
+                        // Use marked.js to render markdown
+                        messageContent = marked.parse(message);
+                    } catch (error) {
+                        console.error("Markdown parsing error:", error);
+                        messageContent = message;
+                    }
+                    
+                    container.innerHTML = `
+                        <div class="message ${isUser ? 'user-message' : 'bot-message'}">
+                            ${messageContent}
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
+                    
+                    // Add seen indicator for user messages
+                    if (isUser) {
+                        const seenIndicator = document.createElement('div');
+                        seenIndicator.className = 'seen-indicator';
+                        seenIndicator.innerHTML = `<img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">`;
+                        container.querySelector('.message').appendChild(seenIndicator);
+                        
+                        // Update the last user message
+                        updateLastUserMessage(container);
+                        
+                        // Add message details panel
+                        setupMessageDetailsPanel(container, true);
+                    }
+                }
+                
+                chatMessages.appendChild(container);
+                
+                // Only auto-scroll if user was already near bottom
+                if (shouldScroll && (isScrolledToBottom || distanceFromBottom < 100 || isUser)) {
+                    // Use requestAnimationFrame for smoother scrolling
+                    requestAnimationFrame(() => {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    });
+                }
+                
+                return container;
+            }
+            
             async function sendMessage() {
                 const messageText = messageInput.value.trim();
                 if (messageText === '') return;
                 
+                // Add user message with animation
                 addMessage(messageText, true);
+                
+                // Reset input with animation
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
                 sendButton.classList.remove('active');
                 sendButton.disabled = true;
+                
+                // Play send animation
+                sendButton.classList.add('sending');
+                setTimeout(() => {
+                    sendButton.classList.remove('sending');
+                }, 300);
                 
                 await sendToGemini(messageText);
             }
@@ -1158,9 +1180,6 @@
                     timestamp: new Date()
                 });
                 
-                // Save conversation history
-                saveConversationHistory();
-                
                 // Show typing indicator
                 showTyping();
                 
@@ -1170,78 +1189,6 @@
                     endpoint: GEMINI_API_ENDPOINT,
                     conversationHistory: conversationHistory
                 });
-                
-                // Set up retry handler
-                worker.onmessage = function(e) {
-                    const { success, data, error } = e.data;
-                    
-                    hideTyping();
-                    
-                    if (!success && retryCount < MAX_RETRIES) {
-                        retryCount++;
-                        console.log(`Retrying API call (${retryCount}/${MAX_RETRIES})...`);
-                        
-                        // Show retry message
-                        addMessage({ error: true, message: `Connection issue. Retrying... (${retryCount}/${MAX_RETRIES})` }, false, true);
-                        
-                        // Retry with exponential backoff
-                        setTimeout(() => {
-                            showTyping();
-                            worker.postMessage({
-                                prompt: basePrompt,
-                                endpoint: GEMINI_API_ENDPOINT,
-                                conversationHistory: conversationHistory
-                            });
-                        }, 1000 * Math.pow(2, retryCount));
-                        return;
-                    }
-                    
-                    if (!success) {
-                        addMessage({ error: true, message: `API Error: ${error}` }, false, true);
-                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                        return;
-                    }
-                    
-                    try {
-                        // Extract the response text from Gemini API response format
-                        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
-                            throw new Error('Invalid response format from Gemini API');
-                        }
-                        
-                        // Get the raw text from the response
-                        let responseText = data.candidates[0].content.parts[0].text.trim();
-                        
-                        // Remove "Aiyoo!" or similar phrases from the beginning of the response
-                        responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
-                        
-                        // Add to conversation history
-                        conversationHistory.push({
-                            text: responseText,
-                            isUser: false,
-                            timestamp: new Date()
-                        });
-                        
-                        // Save conversation history to localStorage
-                        saveConversationHistory();
-                        
-                        // Hide seen indicator when bot replies
-                        hideSeenIndicator();
-                        
-                        addMessage(responseText, false);
-                        
-                        // Show message received animation
-                        profilePic.classList.add('message-received');
-                        setTimeout(() => {
-                            profilePic.classList.remove('message-received');
-                        }, 600);
-                        
-                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                    } catch (error) {
-                        console.error("Response Processing Error:", error);
-                        addMessage({ error: true, message: `Error processing response: ${error.message}` }, false, true);
-                        statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                    }
-                };
             }
             
             function getCurrentTime() {
@@ -1255,16 +1202,10 @@
             }
             
             async function initChat() {
-                // Load existing conversation history
-                loadConversationHistory();
+                // Get user name
+                const userName = localStorage.getItem('samia_user_name') || 'friend';
                 
-                // If no history, start a new conversation
-                if (conversationHistory.length === 0) {
-                    // Get user name
-                    const userName = localStorage.getItem('samia_user_name') || 'friend';
-                    
-                    await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
-                }
+                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
             }
             
             // Event listeners
@@ -1281,58 +1222,6 @@
             
             // Initialize chat
             initChat();
-            
-            // Virtual scrolling for performance
-            const messageObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting) {
-                        // If message is not visible, reduce its DOM complexity
-                        const message = entry.target;
-                        if (message.dataset.simplified !== 'true') {
-                            message.dataset.originalContent = message.innerHTML;
-                            message.dataset.simplified = 'true';
-                            
-                            // Keep a simplified version for off-screen messages
-                            const isUserMessage = message.classList.contains('user-message');
-                            message.innerHTML = isUserMessage ? 
-                                '<div class="placeholder">User message</div>' : 
-                                '<div class="placeholder">Samia message</div>';
-                        }
-                    } else {
-                        // Restore original content when visible again
-                        const message = entry.target;
-                        if (message.dataset.simplified === 'true') {
-                            message.innerHTML = message.dataset.originalContent;
-                            message.dataset.simplified = 'false';
-                        }
-                    }
-                });
-            }, { rootMargin: '100px' });
-            
-            // Apply virtual scrolling to messages
-            function observeMessages() {
-                document.querySelectorAll('.message').forEach(message => {
-                    messageObserver.observe(message);
-                });
-            }
-            
-            // Set up a mutation observer to watch for new messages
-            const chatObserver = new MutationObserver((mutations) => {
-                mutations.forEach(mutation => {
-                    if (mutation.type === 'childList') {
-                        mutation.addedNodes.forEach(node => {
-                            if (node.nodeType === 1 && node.classList.contains('message-container')) {
-                                const message = node.querySelector('.message');
-                                if (message) {
-                                    messageObserver.observe(message);
-                                }
-                            }
-                        });
-                    }
-                });
-            });
-            
-            chatObserver.observe(chatMessages, { childList: true });
             
             // Fix for iOS viewport height issues
             function setVH() {
@@ -1358,7 +1247,9 @@
                         
                         // Adjust input container position
                         const inputContainer = document.querySelector('.chat-input-container');
-                        inputContainer.style.bottom = `${window.innerHeight - viewport.height - viewport.offsetTop}px`;
+                        inputContainer.style.position = 'absolute';
+                        inputContainer.style.bottom = '0';
+                        inputContainer.style.width = '100%';
                         
                         // Scroll to bottom of chat
                         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1369,7 +1260,13 @@
                         
                         // Reset input container
                         const inputContainer = document.querySelector('.chat-input-container');
-                        inputContainer.style.bottom = '0';
+                        inputContainer.style.position = 'fixed';
+                        
+                        if (window.innerWidth >= 768) {
+                            inputContainer.style.width = '768px';
+                        } else {
+                            inputContainer.style.width = '100%';
+                        }
                     }
                 });
             }
@@ -1401,3 +1298,4 @@
         });
     </script>
 </body>
+</html>
