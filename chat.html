@@ -607,6 +607,9 @@
                 max-width: 768px;
                 left: 50%;
                 transform: translateX(-50%);
+                border-left: 1px solid rgba(0, 0, 0, 0.1);
+                border-right: 1px solid rgba(0, 0, 0, 0.1);
+                width: 100%; /* Ensure full width up to max-width */
             }
         }
 
@@ -740,7 +743,9 @@
 
         @media (min-width: 768px) {
             .scroll-to-bottom {
-                right: calc(50% - 384px + 20px);
+                right: calc(50% - 384px + 20px); /* Properly align with chat container */
+                border-left: none;
+                border-right: none;
             }
         }
 
@@ -1035,6 +1040,9 @@
                 max-width: 768px;
                 left: 50%;
                 transform: translateX(-50%) translateY(100%);
+                border-left: 1px solid rgba(0, 0, 0, 0.1);
+                border-right: 1px solid rgba(0, 0, 0, 0.1);
+                width: 100%; /* Ensure full width up to max-width */
             }
 
             .photo-preview-container.visible {
@@ -1265,7 +1273,7 @@
             const reactionPanelTemplate = document.getElementById('reaction-panel-template');
             const emojiPickerTemplate = document.getElementById('emoji-picker-template');
             const emojiContainer = document.getElementById('emoji-container');
-            
+
             // Photo elements
             const photoButton = document.getElementById('photo-button');
             const photoInput = document.getElementById('photo-input');
@@ -1274,7 +1282,7 @@
             const photoPreviewClose = document.getElementById('photo-preview-close');
             const photoPreviewCancel = document.getElementById('photo-preview-cancel');
             const photoPreviewSend = document.getElementById('photo-preview-send');
-            
+
             // Image preview modal
             const imagePreviewModal = document.getElementById('image-preview-modal');
             const imagePreviewImg = document.getElementById('image-preview-img');
@@ -1299,7 +1307,7 @@
             let activeReactionPanel = null;
             let activeEmojiPicker = null;
             let activeMessageElement = null;
-            
+
             // Current photo data
             let currentPhotoData = null;
 
@@ -1437,29 +1445,29 @@
             backButton.addEventListener('click', function() {
                 window.location.href = 'index.html';
             });
-            
+
             // Photo button click handler
             photoButton.addEventListener('click', function() {
                 photoInput.click();
             });
-            
+
             // Photo input change handler
             photoInput.addEventListener('change', function(e) {
                 if (this.files && this.files[0]) {
                     const file = this.files[0];
-                    
+
                     // Check if file is an image
                     if (!file.type.match('image.*')) {
                         addMessage({ error: true, message: 'Please select an image file.' }, false, true);
                         return;
                     }
-                    
+
                     // Check file size (max 5MB)
                     if (file.size > 5 * 1024 * 1024) {
                         addMessage({ error: true, message: 'Image size should be less than 5MB.' }, false, true);
                         return;
                     }
-                    
+
                     // Read and preview the image
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -1470,11 +1478,11 @@
                     reader.readAsDataURL(file);
                 }
             });
-            
+
             // Photo preview close handlers
             photoPreviewClose.addEventListener('click', closePhotoPreview);
             photoPreviewCancel.addEventListener('click', closePhotoPreview);
-            
+
             function closePhotoPreview() {
                 photoPreviewContainer.classList.remove('visible');
                 setTimeout(() => {
@@ -1483,7 +1491,7 @@
                     photoInput.value = '';
                 }, 300);
             }
-            
+
             // Photo send handler
             photoPreviewSend.addEventListener('click', function() {
                 if (currentPhotoData) {
@@ -1491,17 +1499,17 @@
                     closePhotoPreview();
                 }
             });
-            
+
             // Image preview modal handlers
             function openImagePreview(imageSrc) {
                 imagePreviewImg.src = imageSrc;
                 imagePreviewModal.classList.add('visible');
             }
-            
+
             function closeImagePreview() {
                 imagePreviewModal.classList.remove('visible');
             }
-            
+
             imagePreviewClose.addEventListener('click', closeImagePreview);
             imagePreviewModal.addEventListener('click', function(e) {
                 if (e.target === imagePreviewModal) {
@@ -2029,7 +2037,7 @@
                     setupMessageReactions(messageElement);
 
                     setupMessageDetailsPanel(container, isUser);
-                    
+
                     // Add click handlers for images
                     container.querySelectorAll('.message-image').forEach(img => {
                         img.addEventListener('click', function() {
@@ -2084,19 +2092,19 @@
 
                 await sendToGemini(messageText);
             }
-            
+
             // Send photo message
             async function sendPhotoMessage(photoData) {
                 // Add user message with photo
                 const userMessageContainer = addMessage("", true, false, true, [photoData]);
-                
+
                 // Add to conversation history
                 conversationHistory.push({
                     photoData: photoData,
                     isUser: true,
                     timestamp: new Date()
                 });
-                
+
                 // Send to Gemini with photo
                 await sendToGemini("", photoData);
             }
