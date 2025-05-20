@@ -613,6 +613,23 @@
             }
         }
 
+        /* Add responsive fixes for mobile devices */
+        @media (max-width: 480px) {
+            .message {
+                max-width: 90% !important;
+            }
+            
+            .chat-input-container {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            body.keyboard-visible .chat-input-container {
+                position: fixed;
+                bottom: 0;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+        }
+
         .input-wrapper {
             display: flex;
             align-items: flex-end;
@@ -1156,6 +1173,18 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Add avatar loading improvement */
+        .avatar-loading {
+            background: linear-gradient(90deg, #f0f0f0, #e0e0e0, #f0f0f0);
+            background-size: 200% 100%;
+            animation: loadingShimmer 1.5s infinite;
+        }
+        
+        @keyframes loadingShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -1164,8 +1193,10 @@
             <div class="back-button" id="back-button">
                 <i class="fas fa-arrow-left"></i>
             </div>
-            <div class="profile-pic">
-                <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+            <div class="profile-pic avatar-loading">
+                <img src="avatar.jpeg" alt="Samia's Avatar" 
+                     onload="this.parentElement.classList.remove('avatar-loading')"
+                     onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'; this.parentElement.classList.remove('avatar-loading')">
             </div>
             <div class="header-info">
                 <div class="profile-name">Samia Afroz 💖</div>
@@ -1383,59 +1414,49 @@
                 gfm: true
             });
 
-            // Scroll handling
+            // Scroll handling with debounce timer
             let isScrolledToBottom = true;
+            let scrollDebounceTimer;
 
             chatMessages.addEventListener('scroll', function() {
-                isScrolledToBottom = Math.abs(chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop) < 10;
-
-                if (isScrolledToBottom) {
-                    scrollToBottomBtn.classList.remove('visible');
-                } else {
-                    scrollToBottomBtn.classList.add('visible');
-                }
+                clearTimeout(scrollDebounceTimer);
+                scrollDebounceTimer = setTimeout(() => {
+                    const threshold = 100;
+                    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop;
+                    isScrolledToBottom = distanceFromBottom < threshold;
+                    
+                    scrollToBottomBtn.classList.toggle('visible', !isScrolledToBottom);
+                }, 100);
             });
 
+            // Scroll to bottom button
             scrollToBottomBtn.addEventListener('click', function() {
-                chatMessages.scrollTo({
-                    top: chatMessages.scrollHeight,
-                    behavior: 'smooth'
-                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                this.classList.remove('visible');
             });
 
-            // Enhanced input handling with smooth animation
-            messageInput.addEventListener('input', function() {
-                const previousHeight = this.style.height;
-                this.style.height = 'auto';
-                const newHeight = this.scrollHeight + 'px';
-                this.style.height = previousHeight;
-
-                // Use requestAnimationFrame for smoother height transition
-                requestAnimationFrame(() => {
-                    this.style.height = newHeight;
-                });
-
-                if (this.value.trim() !== '') {
-                    if (!sendButton.classList.contains('active')) {
-                        sendButton.classList.add('active');
-                        sendButton.disabled = false;
-                    }
-                } else {
-                    sendButton.classList.remove('active');
-                    sendButton.disabled = true;
-                }
-            });
-
-            // Theme toggle
+            // Theme toggle with persistence
             themeToggle.addEventListener('click', function() {
                 document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                
+                localStorage.setItem('samia_theme', isDark ? 'dark' : 'light');
+                themeIcon.classList.toggle('fa-moon', !isDark);
+                themeIcon.classList.toggle('fa-sun', isDark);
+                
+                // Dispatch event for other tabs/windows
+                window.dispatchEvent(new Event('storage'));
+            });
 
-                if (document.body.classList.contains('dark-mode')) {
-                    localStorage.setItem('samia_theme', 'dark');
+            // Add storage event listener
+            window.addEventListener('storage', function() {
+                const theme = localStorage.getItem('samia_theme');
+                if (theme === 'dark') {
+                    document.body.classList.add('dark-mode');
                     themeIcon.classList.remove('fa-moon');
                     themeIcon.classList.add('fa-sun');
                 } else {
-                    localStorage.setItem('samia_theme', 'light');
+                    document.body.classList.remove('dark-mode');
                     themeIcon.classList.remove('fa-sun');
                     themeIcon.classList.add('fa-moon');
                 }
@@ -1446,58 +1467,81 @@
                 window.location.href = 'index.html';
             });
 
-            // Photo button click handler
+            // Input handling
+            messageInput.addEventListener('input', function() {
+                // Auto-resize textarea
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+
+                // Enable/disable send button
+                sendButton.disabled = this.value.trim() === '';
+                sendButton.classList.toggle('active', !sendButton.disabled);
+            });
+
+            // Enter key to send (with shift+enter for new line)
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!sendButton.disabled) {
+                        sendMessage();
+                    }
+                }
+            });
+
+            // Send button click
+            sendButton.addEventListener('click', sendMessage);
+
+            // Photo button click
             photoButton.addEventListener('click', function() {
                 photoInput.click();
             });
 
-            // Photo input change handler
+            // Photo input change
             photoInput.addEventListener('change', function(e) {
-                if (this.files && this.files[0]) {
-                    const file = this.files[0];
-
-                    // Check if file is an image
-                    if (!file.type.match('image.*')) {
-                        addMessage({ error: true, message: 'Please select an image file.' }, false, true);
-                        return;
-                    }
-
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
                     // Check file size (max 5MB)
                     if (file.size > 5 * 1024 * 1024) {
-                        addMessage({ error: true, message: 'Image size should be less than 5MB.' }, false, true);
+                        alert('Please select an image smaller than 5MB.');
                         return;
                     }
-
-                    // Read and preview the image
+                    
                     const reader = new FileReader();
+                    
                     reader.onload = function(e) {
-                        currentPhotoData = e.target.result;
-                        photoPreviewImage.src = currentPhotoData;
+                        // Show preview
+                        photoPreviewImage.src = e.target.result;
                         photoPreviewContainer.classList.add('visible');
+                        currentPhotoData = e.target.result;
                     };
+                    
                     reader.readAsDataURL(file);
                 }
             });
 
-            // Photo preview close handlers
-            photoPreviewClose.addEventListener('click', closePhotoPreview);
-            photoPreviewCancel.addEventListener('click', closePhotoPreview);
-
-            function closePhotoPreview() {
+            // Photo preview close
+            photoPreviewClose.addEventListener('click', function() {
                 photoPreviewContainer.classList.remove('visible');
                 setTimeout(() => {
-                    currentPhotoData = null;
                     photoPreviewImage.src = '';
-                    photoInput.value = '';
+                    currentPhotoData = null;
                 }, 300);
-            }
+            });
 
-            // Photo send handler
+            // Photo preview cancel
+            photoPreviewCancel.addEventListener('click', function() {
+                photoPreviewContainer.classList.remove('visible');
+                setTimeout(() => {
+                    photoPreviewImage.src = '';
+                    currentPhotoData = null;
+                }, 300);
+            });
+
+            // Photo preview send
             photoPreviewSend.addEventListener('click', function() {
-                if (currentPhotoData) {
-                    sendPhotoMessage(currentPhotoData);
-                    closePhotoPreview();
-                }
+                photoPreviewContainer.classList.remove('visible');
+                sendMessage(true);
             });
 
             // Image preview modal handlers
@@ -1628,8 +1672,28 @@
                 hideTyping();
 
                 if (!success) {
-                    addMessage({ error: true, message: `API Error: ${error}` }, false, true);
+                    addMessage({ 
+                        error: true, 
+                        message: `Oops! Samia is having trouble responding. ${error}. Please try again later.`
+                    }, false, true);
                     statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                    
+                    // Add retry button
+                    const retryButton = document.createElement('button');
+                    retryButton.className = 'button button-primary';
+                    retryButton.textContent = 'Retry';
+                    retryButton.style.marginTop = '8px';
+                    retryButton.addEventListener('click', () => {
+                        const lastMessage = conversationHistory[conversationHistory.length - 1];
+                        if (lastMessage && lastMessage.isUser) {
+                            sendToGemini(lastMessage.text, lastMessage.photoData);
+                        }
+                    });
+                    
+                    const lastMessage = document.querySelector('.message-container:last-child .message');
+                    if (lastMessage) {
+                        lastMessage.appendChild(retryButton);
+                    }
                     return;
                 }
 
@@ -1873,58 +1937,12 @@
                 // Hide reaction panel
                 hideReactionPanel();
 
-                // Clone and position the emoji picker
-                const emojiPicker = emojiPickerTemplate.cloneNode(true);
-                emojiPicker.id = '';
-                emojiPicker.style.display = 'block';
-                messageElement.appendChild(emojiPicker);
-
-                // Show the picker
+                // Show emoji picker
+                const emojiPicker = emojiPickerTemplate;
+                emojiPicker.style.display = 'grid';
                 emojiPicker.classList.add('visible');
                 activeEmojiPicker = emojiPicker;
                 activeMessageElement = messageElement;
-
-                // Add event listeners to category buttons
-                emojiPicker.querySelectorAll('.emoji-category').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const category = this.getAttribute('data-category');
-
-                        // Update active category
-                        emojiPicker.querySelectorAll('.emoji-category').forEach(el => {
-                            el.classList.remove('active');
-                        });
-                        this.classList.add('active');
-
-                        // Populate emojis
-                        const container = emojiPicker.querySelector('.emoji-container');
-                        container.innerHTML = '';
-
-                        // Add emojis
-                        emojisByCategory[category].forEach(emoji => {
-                            const btn = document.createElement('button');
-                            btn.className = 'emoji-btn';
-                            btn.textContent = emoji;
-                            btn.addEventListener('click', function() {
-                                addReactionToMessage(messageElement, emoji);
-                                hideEmojiPicker();
-                            });
-                            container.appendChild(btn);
-                        });
-                    });
-                });
-
-                // Initialize with recent emojis
-                const container = emojiPicker.querySelector('.emoji-container');
-                emojisByCategory.recent.forEach(emoji => {
-                    const btn = document.createElement('button');
-                    btn.className = 'emoji-btn';
-                    btn.textContent = emoji;
-                    btn.addEventListener('click', function() {
-                        addReactionToMessage(messageElement, emoji);
-                        hideEmojiPicker();
-                    });
-                    container.appendChild(btn);
-                });
 
                 // Add click outside listener
                 setTimeout(() => {
@@ -1936,11 +1954,11 @@
                 if (activeEmojiPicker) {
                     activeEmojiPicker.classList.remove('visible');
                     setTimeout(() => {
-                        if (activeEmojiPicker && activeEmojiPicker.parentNode) {
-                            activeEmojiPicker.parentNode.removeChild(activeEmojiPicker);
+                        if (activeEmojiPicker) {
+                            activeEmojiPicker.style.display = 'none';
                         }
-                        activeEmojiPicker = null;
                     }, 200);
+                    activeEmojiPicker = null;
                 }
                 document.removeEventListener('click', hideEmojiPickerOnClickOutside);
             }
@@ -1952,289 +1970,217 @@
             }
 
             function addReactionToMessage(messageElement, emoji) {
-                // Check if this message already has this reaction
-                let reactionElement = messageElement.querySelector(`.message-reaction[data-emoji="${emoji}"]`);
-
+                // Check if reaction already exists
+                let reactionElement = messageElement.querySelector('.message-reaction');
+                
                 if (reactionElement) {
-                    // Toggle reaction - remove it if it exists
-                    reactionElement.remove();
+                    // Update existing reaction
+                    reactionElement.innerHTML = `${emoji} <span class="reaction-count">1</span>`;
                 } else {
-                    // Create new reaction with animation
+                    // Create new reaction
                     reactionElement = document.createElement('div');
                     reactionElement.className = 'message-reaction';
-                    reactionElement.setAttribute('data-emoji', emoji);
                     reactionElement.innerHTML = `${emoji} <span class="reaction-count">1</span>`;
                     messageElement.appendChild(reactionElement);
-
-                    // Add click handler to remove reaction
-                    reactionElement.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        this.remove();
-                    });
                 }
             }
 
-            // Enhanced addMessage function with Messenger-style avatar for bot messages
-            function addMessage(message, isUser, isError = false, shouldScroll = true, images = []) {
-                // Store current scroll position and distance from bottom
-                const scrollTop = chatMessages.scrollTop;
-                const scrollHeight = chatMessages.scrollHeight;
-                const clientHeight = chatMessages.clientHeight;
-                const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+            // Get current time in 12-hour format
+            function getCurrentTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = now.getMinutes();
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                
+                const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+                
+                return `${hours}:${minutesStr} ${ampm}`;
+            }
 
+            // Add message to chat
+            function addMessage(message, isUser = false, isError = false, withAvatar = true, images = null) {
                 const container = document.createElement('div');
                 container.className = `message-container ${isUser ? 'user-message-container' : 'bot-message-container'}`;
-
+                
+                let messageHTML = '';
+                
+                if (!isUser && withAvatar) {
+                    messageHTML += `
+                        <div class="message-avatar">
+                            <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+                        </div>
+                    `;
+                }
+                
                 if (isError) {
-                    container.innerHTML = `
+                    messageHTML += `
                         <div class="message error-message">
                             ${message.message}
-                            <div class="message-time">${getCurrentTime()}</div>
                         </div>
                     `;
                 } else {
-                    let messageContent = '';
-
-                    try {
-                        // Use marked.js to render markdown
-                        messageContent = marked.parse(message);
-                    } catch (error) {
-                        console.error("Markdown parsing error:", error);
-                        messageContent = message;
-                    }
-
-                    // Add image HTML if there are images
-                    let imagesHTML = '';
+                    // Process message text with Markdown
+                    const processedText = isUser ? message : marked.parse(message);
+                    
+                    messageHTML += `
+                        <div class="message ${isUser ? 'user-message' : 'bot-message'}">
+                            ${processedText}
+                            <div class="message-time">${getCurrentTime()}</div>
+                        </div>
+                    `;
+                    
+                    // Add images if any
                     if (images && images.length > 0) {
-                        images.forEach((imageData, index) => {
-                            imagesHTML += `<img src="${imageData}" alt="Image ${index + 1}" class="message-image" data-index="${index}">`;
+                        images.forEach(imgSrc => {
+                            messageHTML += `
+                                <img src="${imgSrc}" alt="Shared image" class="message-image" onclick="openImagePreview('${imgSrc}')">
+                            `;
                         });
                     }
-
-                    if (!isUser) {
-                        container.innerHTML = `
-                            <div class="message-avatar">
-                                <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-                            </div>
-                            <div class="message bot-message">
-                                ${messageContent}
-                                ${imagesHTML}
-                                <div class="message-time">${getCurrentTime()}</div>
-                            </div>
-                        `;
-                    } else {
-                        container.innerHTML = `
-                            <div class="message user-message">
-                                ${messageContent}
-                                ${imagesHTML}
-                                <div class="message-time">${getCurrentTime()}</div>
-                            </div>
-                        `;
-                    }
-
-                    // Setup message reactions
-                    const messageElement = container.querySelector('.message');
-                    setupMessageReactions(messageElement);
-
-                    setupMessageDetailsPanel(container, isUser);
-
-                    // Add click handlers for images
-                    container.querySelectorAll('.message-image').forEach(img => {
-                        img.addEventListener('click', function() {
-                            openImagePreview(this.src);
-                        });
-                    });
                 }
-
+                
+                container.innerHTML = messageHTML;
+                
+                // Add to chat
                 chatMessages.appendChild(container);
-
-                // Update seen indicator for user messages
-                if (isUser) {
-                    setTimeout(updateSeenIndicator, 1000);
+                
+                // Setup message details panel
+                if (!isError) {
+                    setupMessageDetailsPanel(container, isUser);
+                    
+                    // Setup reactions for non-error messages
+                    setupMessageReactions(container.querySelector('.message'));
                 }
-
-                // Only auto-scroll if user was already near bottom
-                if (shouldScroll && (isScrolledToBottom || distanceFromBottom < 100 || isUser)) {
-                    // Use requestAnimationFrame for smoother scrolling
-                    requestAnimationFrame(() => {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    });
+                
+                // Scroll to bottom if needed
+                if (isScrolledToBottom) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    // Show scroll to bottom button
+                    scrollToBottomBtn.classList.add('visible');
                 }
-
+                
                 return container;
             }
 
-            async function sendMessage() {
-                const messageText = messageInput.value.trim();
-                if (messageText === '') return;
-
-                // Add user message with animation
-                const userMessageContainer = addMessage(messageText, true);
-
-                // Reset input with animation
+            // Send message function
+            function sendMessage(withPhoto = false) {
+                const text = messageInput.value.trim();
+                const photoData = withPhoto ? currentPhotoData : null;
+                
+                // Don't send empty messages unless there's a photo
+                if (text === '' && !photoData) return;
+                
+                // Add to conversation history
+                conversationHistory.push({
+                    text: text,
+                    isUser: true,
+                    timestamp: new Date(),
+                    photoData: photoData
+                });
+                
+                // Add user message to chat
+                addMessage(text, true);
+                
+                // If there's a photo, add it
+                if (photoData) {
+                    const container = document.createElement('div');
+                    container.className = 'message-container user-message-container';
+                    container.innerHTML = `
+                        <img src="${photoData}" alt="User photo" class="message-image" onclick="openImagePreview('${photoData}')">
+                    `;
+                    chatMessages.appendChild(container);
+                }
+                
+                // Clear input
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
-                sendButton.classList.remove('active');
                 sendButton.disabled = true;
-
-                // Play send animation
-                sendButton.classList.add('sending');
-                setTimeout(() => {
-                    sendButton.classList.remove('sending');
-                }, 300);
-
-                // Add to conversation history
-                conversationHistory.push({
-                    text: messageText,
-                    isUser: true,
-                    timestamp: new Date()
-                });
-
-                await sendToGemini(messageText);
-            }
-
-            // Send photo message
-            async function sendPhotoMessage(photoData) {
-                // Add user message with photo
-                const userMessageContainer = addMessage("", true, false, true, [photoData]);
-
-                // Add to conversation history
-                conversationHistory.push({
-                    photoData: photoData,
-                    isUser: true,
-                    timestamp: new Date()
-                });
-
-                // Send to Gemini with photo
-                await sendToGemini("", photoData);
-            }
-
-            // Improved sendToGemini with retry logic
-            let retryCount = 0;
-            const MAX_RETRIES = 3;
-
-            async function sendToGemini(messageText, photoData = null) {
-                retryCount = 0;
-
+                sendButton.classList.remove('active');
+                
+                // Reset photo data
+                currentPhotoData = null;
+                
                 // Show typing indicator
                 showTyping();
+                
+                // Send to Gemini API
+                sendToGemini(text, photoData);
+            }
 
-                // Send to API via worker
+            // Send to Gemini API
+            function sendToGemini(text, photoData = null) {
+                // Get user name from localStorage
+                const userName = localStorage.getItem('samia_user_name') || 'friend';
+                
+                // Create a prompt that includes the user's name and message
+                let prompt = basePrompt || `You are Samia, my Bangladeshi girlfriend. You're clingy, dramatic, sweet, romantic, flirty, and sometimes naughty. You use a mix of Romanized Bangla and English. My name is ${userName}.`;
+                
+                // Send message to worker
                 worker.postMessage({
-                    prompt: basePrompt,
+                    prompt: prompt,
                     endpoint: GEMINI_API_ENDPOINT,
                     conversationHistory: conversationHistory,
                     photoData: photoData
                 });
             }
 
-            function getCurrentTime() {
-                const now = new Date();
-                let hours = now.getHours();
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12;
-                return hours + ':' + minutes + ' ' + ampm;
-            }
-
-            async function initChat() {
-                // Get user name
-                const userName = localStorage.getItem('samia_user_name') || 'friend';
-
-                // Initialize seen indicator if needed
-                updateSeenIndicator();
-
-                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
-            }
-
-            // Event listeners
-            sendButton.addEventListener('click', sendMessage);
-
-            messageInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!sendButton.disabled) {
-                        sendMessage();
-                    }
-                }
-            });
-
             // Initialize chat
-            initChat();
-
-            // Fix for iOS viewport height issues
-            function setVH() {
-                let vh = window.innerHeight * 0.01;
-                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            async function initChat() {
+                // Show loading state
+                const loadingContainer = document.createElement('div');
+                loadingContainer.className = 'message-container bot-message-container';
+                loadingContainer.innerHTML = `
+                    <div class="message-avatar">
+                        <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+                    </div>
+                    <div class="message bot-message">
+                        <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
+                    </div>
+                `;
+                chatMessages.appendChild(loadingContainer);
+                
+                // Get user name and send initial message
+                const userName = localStorage.getItem('samia_user_name') || 'friend';
+                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
+                
+                // Remove loading state
+                loadingContainer.remove();
             }
 
-            // Set the height initially and on resize
-            setVH();
-            window.addEventListener('resize', setVH);
-
-            // Improved mobile keyboard handling
-            function handleVisualViewport() {
-                const viewport = window.visualViewport;
-
-                viewport.addEventListener('resize', () => {
-                    const isKeyboardVisible = viewport.height < window.innerHeight;
-
-                    if (isKeyboardVisible) {
-                        // Keyboard is visible
-                        document.body.style.height = `${viewport.height}px`;
+            // Detect keyboard visibility for mobile
+            function setupKeyboardDetection() {
+                const originalHeight = window.innerHeight;
+                
+                window.addEventListener('resize', function() {
+                    // If the window height is significantly smaller, keyboard is likely visible
+                    if (window.innerHeight < originalHeight * 0.75) {
                         document.body.classList.add('keyboard-visible');
-
-                        // Adjust input container position
-                        const inputContainer = document.querySelector('.chat-input-container');
-                        inputContainer.style.position = 'absolute';
-                        inputContainer.style.bottom = '0';
-                        inputContainer.style.width = '100%';
-
-                        // Scroll to bottom of chat
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
                     } else {
-                        // Keyboard is hidden
-                        document.body.style.height = '100vh';
                         document.body.classList.remove('keyboard-visible');
-
-                        // Reset input container
-                        const inputContainer = document.querySelector('.chat-input-container');
-                        inputContainer.style.position = 'fixed';
-
-                        if (window.innerWidth >= 768) {
-                            inputContainer.style.width = '768px';
-                        } else {
-                            inputContainer.style.width = '100%';
-                        }
                     }
                 });
             }
 
-            // Initialize viewport handling
-            if (window.visualViewport) {
-                handleVisualViewport();
-            }
+            // Setup keyboard detection
+            setupKeyboardDetection();
 
-            // Add swipe gesture for back navigation
-            let touchStartX = 0;
-            let touchEndX = 0;
+            // Initialize chat
+            initChat();
 
-            document.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
+            // Clean up event listeners when page is unloaded
+            window.addEventListener('beforeunload', function() {
+                // Release worker resources
+                worker.terminate();
+                URL.revokeObjectURL(workerUrl);
+                
+                // Remove document-level event listeners
+                document.removeEventListener('click', hideReactionPanelOnClickOutside);
+                document.removeEventListener('click', hideEmojiPickerOnClickOutside);
             });
-
-            document.addEventListener('touchend', e => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            });
-
-            function handleSwipe() {
-                if (touchEndX - touchStartX > 100) {
-                    // Swipe right detected, navigate back
-                    window.location.href = 'index.html';
-                }
-            }
         });
     </script>
 </body>
