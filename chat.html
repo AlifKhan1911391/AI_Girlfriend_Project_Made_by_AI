@@ -466,33 +466,36 @@
             color: rgba(255, 255, 255, 0.8);
         }
         
-        /* Updated: Messenger-style seen indicator for both user and bot messages */
-        .message-avatar {
-            width: 16px;
-            height: 16px;
+        /* Global seen indicator at the bottom right of the chat area */
+        .global-seen-indicator {
+            position: fixed;
+            bottom: 90px; /* Position above the input area with increased space */
+            right: 20px;
+            width: 20px; /* Slightly larger for better visibility */
+            height: 20px;
             border-radius: var(--radius-full);
             overflow: hidden;
-            position: absolute;
-            bottom: -6px; /* Fine-tuned: Proper positioning with no gap */
             border: 2px solid var(--background);
             opacity: 0;
             transform: scale(0);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+            z-index: 5;
         }
         
-        .message-avatar img {
+        @media (min-width: 768px) {
+            .global-seen-indicator {
+                right: calc(50% - 384px + 20px); /* Align with the chat container on desktop */
+            }
+        }
+        
+        .global-seen-indicator img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         
-        /* Position all message avatars on the right side */
-        .message-avatar {
-            right: 8px;
-        }
-        
-        /* Show avatar on the last message in the conversation */
-        .message-container.last-message .message .message-avatar {
+        /* Show the global seen indicator when there are messages */
+        .global-seen-indicator.visible {
             opacity: 1;
             transform: scale(1);
         }
@@ -763,6 +766,11 @@
             <!-- Messages will appear here -->
         </div>
         
+        <!-- Global seen indicator at the bottom right of the chat area -->
+        <div class="global-seen-indicator" id="global-seen-indicator">
+            <img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+        </div>
+        
         <button class="scroll-to-bottom" id="scroll-to-bottom">
             <i class="fas fa-chevron-down"></i>
         </button>
@@ -789,6 +797,7 @@
             const themeIcon = themeToggle.querySelector('i');
             const profilePic = document.querySelector('.profile-pic');
             const backButton = document.getElementById('back-button');
+            const globalSeenIndicator = document.getElementById('global-seen-indicator');
             
             // Google Gemini API Key
             const GEMINI_API_KEY = 'AIzaSyA4noABIgUKn19XEQqP8aVRkmc7VfvF5Cs';
@@ -801,9 +810,6 @@
             
             // Conversation history array to maintain state (not stored in localStorage)
             let conversationHistory = [];
-            
-            // Track the last message container for seen indicator
-            let lastMessageContainer = null;
             
             // Check for existing theme preference
             if (localStorage.getItem('samia_theme') === 'dark') {
@@ -981,8 +987,8 @@
                     // Add bot message
                     const botMessageContainer = addMessage(responseText, false);
                     
-                    // Update the last message container and show avatar
-                    updateLastMessage(botMessageContainer);
+                    // Show the global seen indicator
+                    showGlobalSeenIndicator();
                     
                     // Show message received animation
                     profilePic.classList.add('message-received');
@@ -1037,17 +1043,11 @@
                 profilePic.classList.remove('typing');
             }
             
-            // Update the last message container and show avatar
-            function updateLastMessage(newLastMessage) {
-                // Remove the class from all message containers
-                document.querySelectorAll('.message-container.last-message').forEach(container => {
-                    container.classList.remove('last-message');
-                });
-                
-                // Add the class to the new last message
-                if (newLastMessage) {
-                    newLastMessage.classList.add('last-message');
-                    lastMessageContainer = newLastMessage;
+            // Show the global seen indicator
+            function showGlobalSeenIndicator() {
+                // Only show if there are messages
+                if (conversationHistory.length > 0) {
+                    globalSeenIndicator.classList.add('visible');
                 }
             }
             
@@ -1082,7 +1082,7 @@
                 });
             }
             
-            // Enhanced addMessage function with Messenger-style seen indicator for both user and bot messages
+            // Enhanced addMessage function with Messenger-style seen indicator
             function addMessage(message, isUser, isError = false, shouldScroll = true) {
                 // Store current scroll position and distance from bottom
                 const scrollTop = chatMessages.scrollTop;
@@ -1121,12 +1121,6 @@
                     timeElement.textContent = getCurrentTime();
                     messageElement.appendChild(timeElement);
                     
-                    // Add avatar for both user and bot messages
-                    const avatarElement = document.createElement('div');
-                    avatarElement.className = 'message-avatar';
-                    avatarElement.innerHTML = `<img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">`;
-                    messageElement.appendChild(avatarElement);
-                    
                     container.appendChild(messageElement);
                     
                     // Add message details panel
@@ -1135,8 +1129,8 @@
                 
                 chatMessages.appendChild(container);
                 
-                // Update the last message container and show avatar
-                updateLastMessage(container);
+                // Show the global seen indicator
+                showGlobalSeenIndicator();
                 
                 // Only auto-scroll if user was already near bottom
                 if (shouldScroll && (isScrolledToBottom || distanceFromBottom < 100 || isUser)) {
@@ -1303,4 +1297,4 @@
         });
     </script>
 </body>
-</html>
+<html>
