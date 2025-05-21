@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -393,15 +394,29 @@
             padding: 0;
         }
 
-        /* Enhanced: Improved user message animation */
+        /* --- FIX 1: User Message Styling --- */
         .user-message {
             background: var(--user-bubble-gradient);
             color: var(--text-on-accent);
             margin-left: auto;
-            border-bottom-right-radius: 4px;
-            animation: slideInRightBounce 0.3s ease-out;
+            /* Original animation */
+            /* animation: slideInRightBounce 0.3s ease-out; */
             position: relative;
+            /* Added styles */
+            border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md) !important;
+            padding: 10px 14px !important;
+            margin-right: 0 !important;
+            line-height: 1.4 !important;
         }
+
+        .user-message p {
+            margin-bottom: 8px !important;
+        }
+
+        .user-message p:last-child {
+            margin-bottom: 0 !important;
+        }
+        /* --- END FIX 1 --- */
 
         /* Visual feedback for sending message */
         .sending-message {
@@ -525,7 +540,12 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Single seen indicator at bottom */
+        /* --- FIX 3: Seen Indicator Animation --- */
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
         .seen-indicator {
             display: flex;
             justify-content: flex-end;
@@ -534,7 +554,11 @@
             padding: 8px 16px;
             font-size: 11px;
             color: var(--text-secondary);
+            /* Apply animation */
+            animation: slideUp 0.3s ease-out;
+            will-change: transform, opacity;
         }
+        /* --- END FIX 3 --- */
 
         .seen-indicator img {
             width: 16px;
@@ -630,14 +654,18 @@
             animation: typing 3s steps(40, end);
         }
 
+        /* --- FIX 4: Smoother Typing Animation --- */
         .typing-cursor {
             display: inline-block;
             width: 2px;
             height: 16px;
             background-color: currentColor;
             margin-left: 2px;
-            animation: blink 0.7s infinite;
+            /* Updated animation */
+            animation: blink 1s ease-in-out infinite;
             vertical-align: middle;
+            /* Added transition */
+            transition: opacity 0.1s ease;
         }
 
         @keyframes typing {
@@ -647,8 +675,10 @@
 
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+            /* Smoother transition */
+            50% { opacity: 0.5; }
         }
+        /* --- END FIX 4 --- */
 
         /* Fixed input container with improved mobile keyboard handling */
         .chat-input-container {
@@ -1430,74 +1460,62 @@
             const imagePreviewImg = document.getElementById('image-preview-img');
             const imagePreviewClose = document.getElementById('image-preview-close');
 
-            // Google Gemini API Key
-            const GEMINI_API_KEY = 'AIzaSyA4noABIgUKn19XEQqP8aVRkmc7VfvF5Cs';
+            // Google Gemini API Configuration
+            const GEMINI_API_KEY = 'YOUR_API_KEY'; // Replace with your actual API key
+            const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
-            // Gemini API Endpoint
-            const GEMINI_API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-            // Get the updated prompt from localStorage
-            const basePrompt = localStorage.getItem('samia_updated_prompt') || '';
-
-            // Conversation history array to maintain state (not stored in localStorage)
+            // State variables
             let conversationHistory = [];
-
-            // Track the last seen indicator
+            let isScrolledToBottom = true;
+            let scrollDebounceTimer;
             let lastSeenIndicator = null;
-
-            // Track active reaction panel and emoji picker
             let activeReactionPanel = null;
             let activeEmojiPicker = null;
             let activeMessageElement = null;
-
-            // Current photo data
             let currentPhotoData = null;
+            let basePrompt = localStorage.getItem('samia_base_prompt') || '';
 
-            // Track scroll position
-            let isScrolledToBottom = true;
-            let scrollDebounceTimer;
-
-            // Emoji categories
+            // Emoji data (simplified)
             const emojisByCategory = {
-                recent: ['👍', '❤️', '😂', '🔥', '😍', '🎉', '🙏', '👏', '🥰', '😊'],
-                smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '☺️', '😚', '😙', '🥲'],
-                people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍'],
-                animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒'],
-                food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦'],
-                activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳'],
-                travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵'],
-                objects: ['💡', '🔦', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '💰', '💳', '💎', '⚖️', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪓', '🔩'],
-                symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️'],
-                flags: ['🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏳️‍⚧️', '🏴‍☠️', '🇦🇨', '🇦🇩', '🇦🇪', '🇦🇫', '🇦🇬', '🇦🇮', '🇦🇱', '🇦🇲', '🇦🇴', '🇦🇶', '🇦🇷', '🇦🇸']
+                recent: ['❤️', '😂', '👍', '😊', '😢', '😮'],
+                smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'],
+                people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵', '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👩‍🦱', '🧑‍🦱', '👨‍🦱', '👩‍🦰', '🧑‍🦰', '👨‍🦰', '👱‍♀️', '👱', '👱‍♂️', '👩‍🦳', '🧑‍🦳', '👨‍🦳', '👩‍🦲', '🧑‍🦲', '👨‍🦲', '🧔‍♀️', '🧔', '🧔‍♂️', '👵', '🧓', '👴', '👲', '👳‍♀️', '👳', '👳‍♂️', '🧕', '👮‍♀️', '👮', '👮‍♂️', '👷‍♀️', '👷', '👷‍♂️', '💂‍♀️', '💂', '💂‍♂️', '🕵️‍♀️', '🕵️', '🕵️‍♂️', '👩‍⚕️', '🧑‍⚕️', '👨‍⚕️', '👩‍🌾', '🧑‍🌾', '👨‍🌾', '👩‍🍳', '🧑‍🍳', '👨‍🍳', '👩‍🎓', '🧑‍🎓', '👨‍🎓', '👩‍🎤', '🧑‍🎤', '👨‍🎤', '👩‍🏫', '🧑‍🏫', '👨‍🏫', '👩‍🏭', '🧑‍🏭', '👨‍🏭', '👩‍💻', '🧑‍💻', '👨‍💻', '👩‍💼', '🧑‍💼', '👨‍💼', '👩‍🔧', '🧑‍🔧', '👨‍🔧', '👩‍🔬', '🧑‍🔬', '👨‍🔬', '👩‍🎨', '🧑‍🎨', '👨‍🎨', '👩‍🚒', '🧑‍🚒', '👨‍🚒', '👩‍✈️', '🧑‍✈️', '👨‍✈️', '👩‍🚀', '🧑‍🚀', '👨‍🚀', '👩‍⚖️', '🧑‍⚖️', '👨‍⚖️', '👰‍♀️', '👰', '👰‍♂️', '🤵‍♀️', '🤵', '🤵‍♂️', '👸', '🤴', '🦸‍♀️', '🦸', '🦸‍♂️', '🦹‍♀️', '🦹', '🦹‍♂️', '🤶', '🧑‍🎄', '🎅', '🧙‍♀️', '🧙', '🧙‍♂️', '🧝‍♀️', '🧝', '🧝‍♂️', '🧛‍♀️', '🧛', '🧛‍♂️', '🧟‍♀️', '🧟', '🧟‍♂️', '🧞‍♀️', '🧞', '🧞‍♂️', '🧜‍♀️', '🧜', '🧜‍♂️', '🧚‍♀️', '🧚', '🧚‍♂️', '👼', '🤰', '🤱', '👩‍🍼', '🧑‍🍼', '👨‍🍼', '🙇‍♀️', '🙇', '🙇‍♂️', '💁‍♀️', '💁', '💁‍♂️', '🙅‍♀️', '🙅', '🙅‍♂️', '🙆‍♀️', '🙆', '🙆‍♂️', '🙋‍♀️', '🙋', '🙋‍♂️', '🧏‍♀️', '🧏', '🧏‍♂️', '🤦‍♀️', '🤦', '🤦‍♂️', '🤷‍♀️', '🤷', '🤷‍♂️', '🙎‍♀️', '🙎', '🙎‍♂️', '🙍‍♀️', '🙍', '🙍‍♂️', '💇‍♀️', '💇', '💇‍♂️', '💆‍♀️', '💆', '💆‍♂️', '🧖‍♀️', '🧖', '🧖‍♂️', '🚶‍♀️', '🚶', '🚶‍♂️', '🧍‍♀️', '🧍', '🧍‍♂️', '🧎‍♀️', '🧎', '🧎‍♂️', '👩‍🦯', '🧑‍🦯', '👨‍🦯', '👩‍🦼', '🧑‍🦼', '👨‍🦼', '👩‍🦽', '🧑‍🦽', '👨‍🦽', '🏃‍♀️', '🏃', '🏃‍♂️', '💃', '🕺', '🕴️', '👯‍♀️', '👯', '👯‍♂️', '👩‍❤️‍👨', '👩‍❤️‍👩', '💑', '👨‍❤️‍👨', '👩‍❤️‍💋‍👨', '👩‍❤️‍💋‍👩', '💏', '👨‍❤️‍💋‍👨', '👨‍👩‍👦', '👨‍👩‍👧', '👨‍👩‍👧‍👦', '👨‍👩‍👦‍👦', '👨‍👩‍👧‍👧', '👩‍👩‍👦', '👩‍👩‍👧', '👩‍👩‍👧‍👦', '👩‍👩‍👦‍👦', '👩‍👩‍👧‍👧', '👨‍👨‍👦', '👨‍👨‍👧', '👨‍👨‍👧‍👦', '👨‍👨‍👦‍👦', '👨‍👨‍👧‍👧', '👩‍👦', '👩‍👧', '👩‍👧‍👦', '👩‍👦‍👦', '👩‍👧‍👧', '👨‍👦', '👨‍👧', '👨‍👧‍👦', '👨‍👦‍👦', '👨‍👧‍👧', '🗣️', '👤', '👥', '🫂', '👣'],
+                animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🪱', '🐛', '🦋', '🐌', '🐞', '🐜', '🪰', '🪲', '🪳', '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', '🦏', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩', '🦮', '🐕‍🦺', '🐈', '🐈‍⬛', '🐓', '🦃', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔', '🐾', '🐉', '🐲', '🌵', '🎄', '🌲', '🌳', '🌴', '🌱', '🌿', '☘️', '🍀', '🎍', '🎋', '🍃', '🍂', '🍁', '🍄', '🐚', '🌾', '💐', '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '🌞', '🌝', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌙', '🌎', '🌍', '🌏', '🪐', '💫', '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌪️', '🌈', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️', '⛄', '🌬️', '💨', '💧', '💦', '☔', '☂️', '🌊', '🌫️'],
+                food: ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🫓', '🥪', '🥙', '🧆', '🌮', '🌯', '🫔', '🥗', '🥘', '🫕', '🥫', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯', '🥛', '🍼', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🫗', '🥤', '🧋', '🧃', '🧉', '🧊', '🥢', '🍽️', '🍴', '🥄', '🔪', '🏺'],
+                activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️‍♀️', '🏋️', '🏋️‍♂️', '🤼‍♀️', '🤼', '🤼‍♂️', '🤸‍♀️', '🤸', '🤸‍♂️', '⛹️‍♀️', '⛹️', '⛹️‍♂️', '🤺', '🤾‍♀️', '🤾', '🤾‍♂️', '🏌️‍♀️', '🏌️', '🏌️‍♂️', '🏇', '🧘‍♀️', '🧘', '🧘‍♂️', '🏄‍♀️', '🏄', '🏄‍♂️', '🏊‍♀️', '🏊', '🏊‍♂️', '🤽‍♀️', '🤽', '🤽‍♂️', '🚣‍♀️', '🚣', '🚣‍♂️', '🧗‍♀️', '🧗', '🧗‍♂️', '🚵‍♀️', '🚵', '🚵‍♂️', '🚴‍♀️', '🚴', '🚴‍♂️', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹‍♀️', '🤹', '🤹‍♂️', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🪗', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮', '🎰', '🧩'],
+                travel: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛖', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🛕', '🕋', '⛩️', '🛤️', '🛣️', '🗾', '🎑', '🏞️', '🌅', '🌄', '🌠', '🎇', '🎆', '🌇', '🌆', '🏙️', '🌃', '🌌', '🌉', '🌁'],
+                objects: ['⌚', '📱', '📲', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '🗜️', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📽️', '🎞️', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳', '📡', '🔋', '🔌', '💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🪛', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🔩', '⚙️', '🧱', '⛓️', '🪝', '🔗', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️', '🪦', '⚱️', '🏺', '🔮', '📿', '🧿', '💈', '⚗️', '🔭', '🔬', '🕳️', '🩹', '🩺', '💊', '💉', '🩸', '🧬', '🦠', '🧫', '🧪', '🌡️', '🧹', '🧺', '🧻', '🚽', '🚰', '🚿', '🛁', '🛀', '🧼', '🪥', '🪒', '🧽', '🪣', '🧴', '🛎️', '🔑', '🗝️', '🚪', '🪑', '🛋️', '🛏️', '🛌', '🧸', '🪆', '🖼️', '🪞', '🪟', '🛍️', '🛒', '🎁', '🎈', '🎏', '🎀', '🪄', '🪅', '🎊', '🎉', '🎎', '🏮', '🎐', '🧧', '✉️', '📩', '📨', '📧', '💌', '📮', '📪', '📫', '📬', '📭', '📦', '🏷️', '🪧', '📪', '📫', '📬', '📭', '📄', '📃', '📑', '🧾', '📊', '📈', '📉', '🗒️', '🗓️', '📆', '📅', '🗑️', '📇', '🗃️', '🗳️', '🗄️', '📋', '📁', '📂', '🗂️', '🗞️', '📰', '📓', '📔', '📒', '📕', '📗', '📘', '📙', '📚', '📖', '🔖', '🧷', '🔗', '📎', '🖇️', '📐', '📏', '🧮', '📌', '📍', '✂️', '🖊️', '🖋️', '✒️', '🖌️', '🖍️', '📝', '✏️', '🔍', '🔎', '🔏', '🔐', '🔒', '🔓'],
+                symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🈳', '🈂️', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '⬜', '⬛', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔶', '🔷', '🔸', '🔹', '▲', '▼', '△', '▽', '🎴', '♠️', '♣️', '♥️', '♦️', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧'],
+                flags: ['🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏳️‍⚧️', '🏴‍☠️', '🇦🇨', '🇦🇩', '🇦🇪', '🇦🇫', '🇦🇬', '🇦🇮', '🇦🇱', '🇦🇲', '🇦🇴', '🇦🇶', '🇦🇷', '🇦🇸', '🇦🇹', '🇦🇺', '🇦🇼', '🇦🇽', '🇦🇿', '🇧🇦', '🇧🇧', '🇧🇩', '🇧🇪', '🇧🇫', '🇧🇬', '🇧🇭', '🇧🇮', '🇧🇯', '🇧🇱', '🇧🇲', '🇧🇳', '🇧🇴', '🇧🇶', '🇧🇷', '🇧🇸', '🇧🇹', '🇧🇻', '🇧🇼', '🇧🇾', '🇧🇿', '🇨🇦', '🇨🇨', '🇨🇩', '🇨🇫', '🇨🇬', '🇨🇭', '🇨🇮', '🇨🇰', '🇨🇱', '🇨🇲', '🇨🇳', '🇨🇴', '🇨🇵', '🇨🇷', '🇨🇺', '🇨🇻', '🇨🇼', '🇨🇽', '🇨🇾', '🇨🇿', '🇩🇪', '🇩🇬', '🇩🇯', '🇩🇰', '🇩🇲', '🇩🇴', '🇩🇿', '🇪🇦', '🇪🇨', '🇪🇪', '🇪🇬', '🇪🇭', '🇪🇷', '🇪🇸', '🇪🇹', '🇪🇺', '🇫🇮', '🇫🇯', '🇫🇰', '🇫🇲', '🇫🇴', '🇫🇷', '🇬🇦', '🇬🇧', '🇬🇩', '🇬🇪', '🇬🇫', '🇬🇬', '🇬🇭', '🇬🇮', '🇬🇱', '🇬🇲', '🇬🇳', '🇬🇵', '🇬🇶', '🇬🇷', '🇬🇸', '🇬🇹', '🇬🇺', '🇬🇼', '🇬🇾', '🇭🇰', '🇭🇲', '🇭🇳', '🇭🇷', '🇭🇹', '🇭🇺', '🇮🇨', '🇮🇩', '🇮🇪', '🇮🇱', '🇮🇲', '🇮🇳', '🇮🇴', '🇮🇶', '🇮🇷', '🇮🇸', '🇮🇹', '🇯🇪', '🇯🇲', '🇯🇴', '🇯🇵', '🇰🇪', '🇰🇬', '🇰🇭', '🇰🇮', '🇰🇲', '🇰🇳', '🇰🇵', '🇰🇷', '🇰🇼', '🇰🇾', '🇰🇿', '🇱🇦', '🇱🇧', '🇱🇨', '🇱🇮', '🇱🇰', '🇱🇷', '🇱🇸', '🇱🇹', '🇱🇺', '🇱🇻', '🇱🇾', '🇲🇦', '🇲🇨', '🇲🇩', '🇲🇪', '🇲🇫', '🇲🇬', '🇲🇭', '🇲🇰', '🇲🇱', '🇲🇲', '🇲🇳', '🇲🇴', '🇲🇵', '🇲🇶', '🇲🇷', '🇲🇸', '🇲🇹', '🇲🇺', '🇲🇻', '🇲🇼', '🇲🇽', '🇲🇾', '🇲🇿', '🇳🇦', '🇳🇨', '🇳🇪', '🇳🇫', '🇳🇬', '🇳🇮', '🇳🇱', '🇳🇴', '🇳🇵', '🇳🇷', '🇳🇺', '🇳🇿', '🇴🇲', '🇵🇦', '🇵🇪', '🇵🇫', '🇵🇬', '🇵🇭', '🇵🇰', '🇵🇱', '🇵🇲', '🇵🇳', '🇵🇷', '🇵🇸', '🇵🇹', '🇵🇼', '🇵🇾', '🇶🇦', '🇷🇪', '🇷🇴', '🇷🇸', '🇷🇺', '🇷🇼', '🇸🇦', '🇸🇧', '🇸🇨', '🇸🇩', '🇸🇪', '🇸🇬', '🇸🇭', '🇸🇮', '🇸🇯', '🇸🇰', '🇸🇱', '🇸🇲', '🇸🇳', '🇸🇴', '🇸🇷', '🇸🇸', '🇸🇹', '🇸🇻', '🇸🇽', '🇸🇾', '🇸🇿', '🇹🇦', '🇹🇨', '🇹🇩', '🇹🇫', '🇹🇬', '🇹🇭', '🇹🇯', '🇹🇰', '🇹🇱', '🇹🇲', '🇹🇳', '🇹🇴', '🇹🇷', '🇹🇹', '🇹🇻', '🇹🇼', '🇹🇿', '🇺🇦', '🇺🇬', '🇺🇲', '🇺🇳', '🇺🇸', '🇺🇾', '🇺🇿', '🇻🇦', '🇻🇨', '🇻🇪', '🇻🇬', '🇻🇮', '🇻🇳', '🇻🇺', '🇼🇫', '🇼🇸', '🇽🇰', '🇾🇪', '🇾🇹', '🇿🇦', '🇿🇲', '🇿🇼', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁷󠁬󠁳󠁿']
             };
 
-            // Initialize emoji picker
-            function initEmojiPicker() {
-                // Set initial emojis (recent category)
-                populateEmojiContainer('recent');
+            // Helper function to get current time
+            function getCurrentTime() {
+                return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
 
-                // Add event listeners to category buttons
-                emojiPickerTemplate.querySelectorAll('.emoji-category').forEach(btn => {
+            // Initialize the emoji picker
+            function initEmojiPicker() {
+                const categories = emojiPickerTemplate.querySelector('.emoji-categories');
+                const container = emojiPickerTemplate.querySelector('.emoji-container');
+
+                // Populate initial category (recent)
+                populateEmojis(container, 'recent');
+
+                // Add category click listeners
+                categories.querySelectorAll('.emoji-category').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const category = this.getAttribute('data-category');
-
-                        // Update active category
-                        emojiPickerTemplate.querySelectorAll('.emoji-category').forEach(el => {
-                            el.classList.remove('active');
-                        });
+                        categories.querySelectorAll('.emoji-category').forEach(el => el.classList.remove('active'));
                         this.classList.add('active');
-
-                        // Populate emojis
-                        populateEmojiContainer(category);
+                        populateEmojis(container, category);
                     });
                 });
             }
 
-            function populateEmojiContainer(category) {
-                // Clear container
-                emojiContainer.innerHTML = '';
-
-                // Add emojis
+            // Populate emojis for a category
+            function populateEmojis(container, category) {
+                container.innerHTML = ''; // Clear previous emojis
                 emojisByCategory[category].forEach(emoji => {
                     const btn = document.createElement('button');
                     btn.className = 'emoji-btn';
@@ -1510,7 +1528,7 @@
                             hideReactionPanel();
                         }
                     });
-                    emojiContainer.appendChild(btn);
+                    container.appendChild(btn);
                 });
             }
 
@@ -1527,9 +1545,6 @@
                 // Initialize emoji picker
                 initEmojiPicker();
 
-                // Add initial loading state
-                showInitialLoading();
-
                 // Start the chat
                 initChat();
 
@@ -1537,36 +1552,22 @@
                 setupEventListeners();
             }
 
-            // Show initial loading state
-            function showInitialLoading() {
-                const loadingContainer = document.createElement('div');
-                loadingContainer.className = 'message-container bot-message-container';
-                loadingContainer.id = 'initial-loading';
-                loadingContainer.innerHTML = `
-                    <div class="message-avatar">
-                        <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-                    </div>
-                    <div class="message bot-message">
-                        <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto;"></div>
-                    </div>
-                `;
-                chatMessages.appendChild(loadingContainer);
-            }
-
+            // --- FIX 5: Remove Initial Circle Loading --- 
             // Initialize the chat
             async function initChat() {
                 // Get user name
                 const userName = localStorage.getItem('samia_user_name') || 'friend';
 
-                // Send initial message
-                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
-
-                // Remove loading state
+                // Remove loading state immediately (if it exists)
                 const initialLoading = document.getElementById('initial-loading');
                 if (initialLoading) {
                     initialLoading.remove();
                 }
+
+                // Send initial message
+                await sendToGemini(`Start the conversation as my girlfriend Samia Afroz. Remember my name is ${userName}.`);
             }
+            // --- END FIX 5 --- 
 
             // Setup event listeners
             function setupEventListeners() {
@@ -1665,6 +1666,7 @@
                     photoInput.click();
                 });
 
+                // --- FIX 6: Photo Handling (JPEG Conversion) --- 
                 // Photo input change
                 photoInput.addEventListener('change', function(e) {
                     if (e.target.files && e.target.files[0]) {
@@ -1685,10 +1687,42 @@
                         const reader = new FileReader();
 
                         reader.onload = function(e) {
-                            // Show preview
-                            photoPreviewImage.src = e.target.result;
-                            photoPreviewContainer.classList.add('visible');
-                            currentPhotoData = e.target.result;
+                            // Convert to JPEG using canvas
+                            const img = new Image();
+                            img.onload = function() {
+                                const canvas = document.createElement('canvas');
+                                const MAX_WIDTH = 1024; // Optional: Resize image if needed
+                                const MAX_HEIGHT = 1024;
+                                let width = img.width;
+                                let height = img.height;
+
+                                if (width > height) {
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+                                } else {
+                                    if (height > MAX_HEIGHT) {
+                                        width *= MAX_HEIGHT / height;
+                                        height = MAX_HEIGHT;
+                                    }
+                                }
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                // Save as JPEG with quality 0.8
+                                currentPhotoData = canvas.toDataURL('image/jpeg', 0.8); 
+                                
+                                // Show preview
+                                photoPreviewImage.src = currentPhotoData;
+                                photoPreviewContainer.classList.add('visible');
+                            };
+                            img.onerror = function() {
+                                addMessage({error: true, message: "Error processing the image. Please try a different image."}, false, true);
+                            };
+                            img.src = e.target.result; // Original base64 data
                         };
 
                         reader.onerror = function() {
@@ -1698,6 +1732,7 @@
                         reader.readAsDataURL(file);
                     }
                 });
+                // --- END FIX 6 --- 
 
                 // Photo preview close
                 photoPreviewClose.addEventListener('click', function() {
@@ -1705,6 +1740,7 @@
                     setTimeout(() => {
                         photoPreviewImage.src = '';
                         currentPhotoData = null;
+                        photoInput.value = ''; // Clear the file input
                     }, 300);
                 });
 
@@ -1714,6 +1750,7 @@
                     setTimeout(() => {
                         photoPreviewImage.src = '';
                         currentPhotoData = null;
+                        photoInput.value = ''; // Clear the file input
                     }, 300);
                 });
 
@@ -1721,11 +1758,12 @@
                 photoPreviewSend.addEventListener('click', function() {
                     photoPreviewContainer.classList.remove('visible');
                     sendMessage(true);
+                    photoInput.value = ''; // Clear the file input
                 });
 
                 // Close emoji picker and reaction panel when clicking elsewhere
                 document.addEventListener('click', function(e) {
-                    if (!e.target.closest('.emoji-picker') && !e.target.closest('.reaction-btn')) {
+                    if (!e.target.closest('.emoji-picker') && !e.target.closest('.reaction-add')) {
                         hideEmojiPicker();
                     }
                     if (!e.target.closest('.reaction-panel') && !e.target.closest('.message')) {
@@ -1741,8 +1779,17 @@
                         document.body.classList.remove('keyboard-visible');
                     }
                 });
+
+                // Image preview modal close
+                imagePreviewClose.addEventListener('click', closeImagePreview);
+                imagePreviewModal.addEventListener('click', function(e) {
+                    if (e.target === imagePreviewModal) {
+                        closeImagePreview();
+                    }
+                });
             }
 
+            // --- FIX 2: Photo Display Fix --- 
             // Send message function
             function sendMessage(withPhoto = false) {
                 const messageText = messageInput.value.trim();
@@ -1759,7 +1806,15 @@
                 });
 
                 // Add user message to UI with sending state
-                const messageContainer = addMessage(messageText, true, false, false, null, true);
+                // Pass photo data to addMessage if sending a photo
+                const messageContainer = addMessage(
+                    messageText, 
+                    true, 
+                    false, 
+                    false, 
+                    withPhoto ? [currentPhotoData] : null, // Pass photo data here
+                    true
+                );
 
                 // Clear input and reset height
                 messageInput.value = '';
@@ -1787,6 +1842,7 @@
                     }
                 }, 300);
             }
+            // --- END FIX 2 --- 
 
             // Format messages for API
             function formatMessagesForAPI(messageText, photoData) {
@@ -1795,12 +1851,12 @@
                 // Add the base prompt as system message
                 formattedConversation.push({
                     role: "user",
-                    parts: [{ text: basePrompt || "You are Samia, a 19-year-old Bangladeshi virtual girlfriend. Be sweet, romantic, and sometimes flirty. Mix Romanized Bangla (70%) with English (30%). Keep responses short (3-4 lines)." }]
+                    parts: [{ text: basePrompt || "You are Samia Afroz, a 19-year-old Bangladeshi virtual girlfriend. Be sweet, romantic, and sometimes flirty. Mix Romanized Bangla (70%) with English (30%). Keep responses short (3-4 lines)." }]
                 });
 
                 formattedConversation.push({
                     role: "model",
-                    parts: [{ text: "I'll be Samia, your Bangladeshi girlfriend. I'll respond as described." }]
+                    parts: [{ text: "Okay, I understand. I'll be Samia Afroz, your Bangladeshi girlfriend. I'll respond as described." }]
                 });
 
                 // Add conversation history (limited to last 10 messages)
@@ -1808,21 +1864,24 @@
                 for (const message of recentHistory) {
                     if (message.isUser) {
                         // User message
+                        const userParts = [];
+                        if (message.text) {
+                            userParts.push({ text: message.text });
+                        }
                         if (message.photoData) {
-                            // Message with photo
-                            formattedConversation.push({
-                                role: "user",
-                                parts: [
-                                    { text: message.text || "Check out this photo:" },
-                                    { inline_data: { mime_type: "image/jpeg", data: message.photoData.split(',')[1] } }
-                                ]
-                            });
-                        } else {
-                            // Text-only message
-                            formattedConversation.push({
-                                role: "user",
-                                parts: [{ text: message.text }]
-                            });
+                            // Ensure photoData is valid base64 string
+                            const base64Data = message.photoData.split(',')[1];
+                            if (base64Data) {
+                                userParts.push({ inline_data: { mime_type: "image/jpeg", data: base64Data } });
+                            } else {
+                                console.error("Invalid photoData format for user message:", message.photoData);
+                                // Optionally add a placeholder text if image data is invalid
+                                if (!message.text) userParts.push({ text: "[Image could not be processed]" });
+                            }
+                        }
+                        // Only push if there are parts
+                        if (userParts.length > 0) {
+                            formattedConversation.push({ role: "user", parts: userParts });
                         }
                     } else {
                         // Bot message
@@ -1833,22 +1892,10 @@
                     }
                 }
 
-                // If current message has a photo, add it
-                if (photoData) {
-                    const lastMessage = formattedConversation[formattedConversation.length - 1];
-                    if (lastMessage.role === "user") {
-                        // Replace the last message with one that includes the photo
-                        formattedConversation.pop();
-                    }
-
-                    formattedConversation.push({
-                        role: "user",
-                        parts: [
-                            { text: messageText || "Check out this photo:" },
-                            { inline_data: { mime_type: "image/jpeg", data: photoData.split(',')[1] } }
-                        ]
-                    });
-                }
+                // If current message has a photo, ensure it's added correctly
+                // (This part seems redundant as the current message is already added to history before this function is called)
+                // However, if we were sending the *current* photo along with text, it would be handled here.
+                // Let's assume the history logic is correct.
 
                 return formattedConversation;
             }
@@ -1862,140 +1909,62 @@
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({
-                            contents: formatMessagesForAPI(messageText, photoData),
-                            generationConfig: {temperature: 0.7, topP: 0.95, topK: 40}
+                            contents: formatMessagesForAPI(messageText, photoData) // Pass photoData here if needed by API format
                         })
                     });
 
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
-                    processResponse(data);
-                } catch (error) {
-                    console.error("API Error:", error);
                     hideTyping();
 
-                    // Add error message with retry button
-                    const errorContainer = addMessage({
-                        error: true, 
-                        message: "Sorry, I'm having trouble responding. Please try again."
-                    }, false, true);
-
-                    const retryButton = document.createElement('button');
-                    retryButton.className = 'button button-primary';
-                    retryButton.textContent = 'Retry';
-                    retryButton.style.marginTop = '8px';
-                    retryButton.addEventListener('click', () => {
-                        const lastMessage = conversationHistory[conversationHistory.length - 1];
-                        if (lastMessage && lastMessage.isUser) {
-                            sendToGemini(lastMessage.text, lastMessage.photoData);
-                            errorContainer.remove();
-                        }
-                    });
-
-                    const errorMessage = errorContainer.querySelector('.message');
-                    if (errorMessage) {
-                        errorMessage.appendChild(retryButton);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('API Error:', errorData);
+                        addMessage({error: true, message: `API Error: ${errorData.error?.message || 'Unknown error'}`}, false, true);
+                        return;
                     }
 
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                }
-            }
+                    const data = await response.json();
+                    const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't process that.";
 
-            // Process API response
-            function processResponse(data) {
-                hideTyping();
+                    // Add bot response to history
+                    conversationHistory.push({ text: botResponse, isUser: false, timestamp: new Date() });
 
-                try {
-                    // Extract the response text from Gemini API response format
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
-                        throw new Error('Invalid response format from Gemini API');
-                    }
+                    // Add bot response to UI with typing animation
+                    addBotMessageWithTyping(botResponse);
 
-                    // Process the response parts
-                    const responseParts = data.candidates[0].content.parts;
-                    let responseText = '';
-                    let responseImages = [];
+                    // Update seen indicator
+                    updateSeenIndicator();
 
-                    // Extract text and images from the response
-                    responseParts.forEach(part => {
-                        if (part.text) {
-                            responseText += part.text.trim();
-                        } else if (part.inline_data) {
-                            // This is an image generated by Gemini
-                            const imageData = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
-                            responseImages.push(imageData);
-                        }
-                    });
-
-                    // Remove "Aiyoo!" or similar phrases from the beginning of the response
-                    responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
-
-                    // Add to conversation history
-                    conversationHistory.push({
-                        text: responseText,
-                        isUser: false,
-                        timestamp: new Date(),
-                        images: responseImages.length > 0 ? responseImages : null
-                    });
-
-                    // Add bot message with enhanced typing animation
-                    addMessageWithTypingAnimation(responseText, responseImages);
-
-                    // Update seen indicator after bot message
-                    setTimeout(updateSeenIndicator, 1000);
-
-                    // Show message received animation
+                    // Trigger avatar animation
                     profilePic.classList.add('message-received');
-                    setTimeout(() => {
-                        profilePic.classList.remove('message-received');
-                    }, 600);
+                    setTimeout(() => profilePic.classList.remove('message-received'), 600);
 
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
                 } catch (error) {
-                    console.error("Response Processing Error:", error);
-                    addMessage({ error: true, message: `Error processing response: ${error.message}` }, false, true);
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+                    console.error('Fetch Error:', error);
+                    hideTyping();
+                    addMessage({error: true, message: `Network Error: ${error.message}`}, false, true);
                 }
             }
 
-            // Add message with enhanced typing animation
-            function addMessageWithTypingAnimation(text, images = null) {
-                // Create message container
+            // Add bot message with typing animation
+            function addBotMessageWithTyping(fullMessage) {
                 const container = document.createElement('div');
                 container.className = 'message-container bot-message-container';
 
                 // Add avatar
-                const avatarHTML = `
+                container.innerHTML = `
                     <div class="message-avatar">
                         <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
                     </div>
+                    <div class="message bot-message"></div>
                 `;
 
-                // Create message element with empty content
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message bot-message';
-
-                // Add timestamp
-                const timestamp = document.createElement('div');
-                timestamp.className = 'message-time';
-                timestamp.textContent = getCurrentTime();
-                messageElement.appendChild(timestamp);
-
-                // Add container to DOM
-                container.innerHTML = avatarHTML;
-                container.appendChild(messageElement);
+                const messageElement = container.querySelector('.message');
                 chatMessages.appendChild(container);
 
-                // Scroll to bottom
-                if (isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-
-                // Split text into sentences or segments
-                const segments = text.split(/(?<=[.!?])\s+/);
+                // Split message into segments (e.g., by sentences or lines)
+                const segments = fullMessage.split(/\n|(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
                 let currentIndex = 0;
 
-                // Function to animate typing for each segment
                 function typeNextSegment() {
                     if (currentIndex < segments.length) {
                         const segment = segments[currentIndex];
@@ -2026,13 +1995,19 @@
                         // Calculate typing duration based on segment length
                         const typingDuration = Math.min(Math.max(segment.length * 30, 500), 2000);
 
+                        // Apply markdown parsing after typing
+                        const parsedSegment = marked.parseInline(segment); // Use parseInline for segments
+                        typingText.style.animation = `typing ${typingDuration / 1000}s steps(${segment.length}, end)`;
+
                         // After typing animation completes
                         setTimeout(() => {
                             // Remove cursor
                             cursor.remove();
 
-                            // Remove typing class
+                            // Replace text content with parsed HTML
+                            typingText.innerHTML = parsedSegment;
                             typingText.classList.remove('typing-text');
+                            typingText.style.animation = ''; // Remove animation style
 
                             // Add line break if not last segment
                             if (currentIndex < segments.length - 1) {
@@ -2044,18 +2019,7 @@
                             typeNextSegment();
                         }, typingDuration);
                     } else {
-                        // All segments typed, add images if any
-                        if (images && images.length > 0) {
-                            images.forEach(imgSrc => {
-                                const img = document.createElement('img');
-                                img.src = imgSrc;
-                                img.className = 'message-image';
-                                img.alt = 'Samia sent an image';
-                                img.addEventListener('click', () => openImagePreview(imgSrc));
-                                messageElement.appendChild(img);
-                            });
-                        }
-
+                        // All segments typed
                         // Setup message details and reactions
                         setupMessageDetailsPanel(container, false);
                         setupMessageReactions(messageElement);
@@ -2076,6 +2040,10 @@
 
                 // Add typing class to profile pic to show animation
                 profilePic.classList.add('typing');
+
+                // Remove existing typing indicator if any
+                const existingIndicator = document.getElementById('typing-indicator');
+                if (existingIndicator) existingIndicator.remove();
 
                 const container = document.createElement('div');
                 container.className = 'typing-container';
@@ -2139,14 +2107,27 @@
                 if (isError) {
                     messageContent = message.message || 'An error occurred';
                 } else if (typeof message === 'string') {
-                    // Process markdown for bot messages
-                    messageContent = isUser ? message : marked.parse(message);
+                    // Process markdown for bot messages, plain text for user
+                    messageContent = isUser ? escapeHtml(message) : marked.parse(message); // Escape user HTML
                 } else {
-                    messageContent = message;
+                    // Should not happen if input is string or error object
+                    messageContent = escapeHtml(String(message));
                 }
 
-                messageHTML += `<div class="message${errorClass}${messageClass}${sendingClass}">`;
+                messageHTML += `<div class="${messageClass}${errorClass}${sendingClass}">`;
                 messageHTML += messageContent;
+
+                // Add images if any (moved inside the message div)
+                if (images && images.length > 0) {
+                    images.forEach(imgSrc => {
+                        // Validate imgSrc is a data URL
+                        if (imgSrc && imgSrc.startsWith('data:image')) {
+                            messageHTML += `<img src="${imgSrc}" class="message-image" alt="${isUser ? 'You sent an image' : 'Samia sent an image'}">`;
+                        } else {
+                            console.error("Invalid image source provided:", imgSrc);
+                        }
+                    });
+                }
 
                 // Add timestamp
                 messageHTML += `<div class="message-time">${getCurrentTime()}</div>`;
@@ -2160,16 +2141,11 @@
                 // Add to chat
                 chatMessages.appendChild(container);
 
-                // Add images if any
+                // Add click listener for images inside the message
                 const messageElement = container.querySelector('.message');
-                if (images && images.length > 0 && messageElement) {
-                    images.forEach(imgSrc => {
-                        const img = document.createElement('img');
-                        img.src = imgSrc;
-                        img.className = 'message-image';
-                        img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
-                        img.addEventListener('click', () => openImagePreview(imgSrc));
-                        messageElement.appendChild(img);
+                if (messageElement) {
+                    messageElement.querySelectorAll('.message-image').forEach(img => {
+                        img.addEventListener('click', () => openImagePreview(img.src));
                     });
                 }
 
@@ -2179,7 +2155,7 @@
                 }
 
                 // Setup message details and reactions
-                if (!isError && !isSending) {
+                if (!isError && !isSending && messageElement) {
                     setupMessageDetailsPanel(container, isUser);
                     setupMessageReactions(messageElement);
                 }
@@ -2194,10 +2170,11 @@
                     lastSeenIndicator.remove();
                 }
 
-                // Only add seen indicator if there are messages
-                if (conversationHistory.length > 0) {
+                // Only add seen indicator if there are messages and the last one is from the bot
+                const lastMessage = conversationHistory[conversationHistory.length - 1];
+                if (lastMessage && !lastMessage.isUser) {
                     lastSeenIndicator = document.createElement('div');
-                    lastSeenIndicator.className = 'seen-indicator';
+                    lastSeenIndicator.className = 'seen-indicator'; // Animation is applied via CSS
                     lastSeenIndicator.innerHTML = `
                         Seen
                         <img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
@@ -2214,15 +2191,20 @@
             // Handle message details panel
             function setupMessageDetailsPanel(container, isUser) {
                 const message = container.querySelector('.message');
+                if (!message) return; // Ensure message element exists
 
                 // Create message details panel
                 const detailsPanel = document.createElement('div');
                 detailsPanel.className = 'message-details';
-                detailsPanel.innerHTML = `Sent at ${getCurrentTime()} • Seen`;
+                detailsPanel.innerHTML = `Sent at ${getCurrentTime()} • Seen`; // Placeholder text
                 container.appendChild(detailsPanel);
 
                 // Toggle details panel on click
                 message.addEventListener('click', function(e) {
+                    // Prevent toggling if clicking an image or link inside the message
+                    if (e.target.tagName === 'IMG' || e.target.tagName === 'A') {
+                        return;
+                    }
                     e.stopPropagation();
 
                     // Close any other open details panels
@@ -2244,10 +2226,12 @@
 
             // Setup message reactions
             function setupMessageReactions(messageElement) {
+                if (!messageElement) return;
                 // Create a reaction panel for this message
                 const reactionPanel = reactionPanelTemplate.cloneNode(true);
                 reactionPanel.id = '';
-                reactionPanel.style.display = 'flex';
+                reactionPanel.style.display = 'flex'; // Make it flex for layout
+                reactionPanel.classList.remove('visible'); // Start hidden
                 messageElement.appendChild(reactionPanel);
 
                 // Handle long press to show reactions
@@ -2255,6 +2239,8 @@
                 let longPressStarted = false;
 
                 messageElement.addEventListener('touchstart', function(e) {
+                    // Don't trigger on images/links
+                    if (e.target.tagName === 'IMG' || e.target.tagName === 'A') return;
                     longPressStarted = true;
                     longPressTimer = setTimeout(() => {
                         if (longPressStarted) {
@@ -2262,7 +2248,7 @@
                             showReactionPanel(messageElement);
                         }
                     }, 500);
-                });
+                }, { passive: false });
 
                 messageElement.addEventListener('touchmove', function() {
                     longPressStarted = false;
@@ -2274,9 +2260,11 @@
                     clearTimeout(longPressTimer);
                 });
 
-                // Double tap to show reactions
+                // Double tap to show reactions (optional, can be annoying)
+                /*
                 let lastTap = 0;
                 messageElement.addEventListener('touchend', function(e) {
+                    if (e.target.tagName === 'IMG' || e.target.tagName === 'A') return;
                     const currentTime = new Date().getTime();
                     const tapLength = currentTime - lastTap;
                     if (tapLength < 300 && tapLength > 0) {
@@ -2285,9 +2273,11 @@
                     }
                     lastTap = currentTime;
                 });
+                */
 
                 // Double click to show reactions
                 messageElement.addEventListener('dblclick', function(e) {
+                    if (e.target.tagName === 'IMG' || e.target.tagName === 'A') return;
                     e.preventDefault();
                     showReactionPanel(messageElement);
                 });
@@ -2336,13 +2326,21 @@
                 // Hide reaction panel
                 hideReactionPanel();
 
-                // Clone emoji picker template
-                const emojiPicker = emojiPickerTemplate.cloneNode(true);
-                emojiPicker.id = '';
-                emojiPicker.style.display = 'block';
+                // Use the single emoji picker template
+                const emojiPicker = emojiPickerTemplate;
+                emojiPicker.style.display = 'grid'; // Change from none to grid
 
-                // Position it
-                messageElement.appendChild(emojiPicker);
+                // Position it relative to the message element or reaction panel trigger
+                const messageRect = messageElement.getBoundingClientRect();
+                const chatRect = chatMessages.getBoundingClientRect();
+                
+                emojiPicker.style.position = 'absolute'; // Ensure it's positioned absolutely
+                emojiPicker.style.bottom = (chatRect.bottom - messageRect.top + 10) + 'px'; // Position above message
+                emojiPicker.style.left = '50%'; // Center horizontally initially
+                emojiPicker.style.transform = 'translateX(-50%) translateY(0)'; // Adjust transform
+
+                // Append to chat messages container for correct positioning context
+                chatMessages.appendChild(emojiPicker);
 
                 // Show it
                 setTimeout(() => {
@@ -2352,110 +2350,74 @@
                 activeEmojiPicker = emojiPicker;
                 activeMessageElement = messageElement;
 
-                // Setup category buttons
+                // Reset to default category (e.g., smileys)
+                const defaultCategory = 'smileys';
                 emojiPicker.querySelectorAll('.emoji-category').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const category = this.getAttribute('data-category');
-
-                        // Update active category
-                        emojiPicker.querySelectorAll('.emoji-category').forEach(el => {
-                            el.classList.remove('active');
-                        });
-                        this.classList.add('active');
-
-                        // Populate emojis
-                        const container = emojiPicker.querySelector('.emoji-container');
-                        container.innerHTML = '';
-
-                        emojisByCategory[category].forEach(emoji => {
-                            const btn = document.createElement('button');
-                            btn.className = 'emoji-btn';
-                            btn.textContent = emoji;
-                            btn.setAttribute('aria-label', `${emoji} emoji`);
-                            btn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                addReactionToMessage(messageElement, emoji);
-                                hideEmojiPicker();
-                            });
-                            container.appendChild(btn);
-                        });
-                    });
+                    btn.classList.toggle('active', btn.getAttribute('data-category') === defaultCategory);
                 });
-
-                // Trigger click on first category
-                emojiPicker.querySelector('.emoji-category.active').click();
+                populateEmojis(emojiPicker.querySelector('.emoji-container'), defaultCategory);
             }
 
             // Hide emoji picker
             function hideEmojiPicker() {
                 if (activeEmojiPicker) {
                     activeEmojiPicker.classList.remove('visible');
+                    // Optionally move it back to body or hide with display: none after transition
                     setTimeout(() => {
-                        if (activeEmojiPicker && activeEmojiPicker.parentNode) {
-                            activeEmojiPicker.parentNode.removeChild(activeEmojiPicker);
+                        if (activeEmojiPicker) activeEmojiPicker.style.display = 'none';
+                        // If appended to chatMessages, remove it
+                        if (activeEmojiPicker && activeEmojiPicker.parentElement === chatMessages) {
+                             chatMessages.removeChild(activeEmojiPicker);
                         }
-                        activeEmojiPicker = null;
-                    }, 300);
+                    }, 200); // Match transition duration
+                    activeEmojiPicker = null;
                 }
             }
 
             // Add reaction to message
             function addReactionToMessage(messageElement, emoji) {
-                // Check if reaction already exists
-                let existingReaction = messageElement.querySelector(`.message-reaction[data-emoji="${emoji}"]`);
-
+                // Remove existing reaction from this user if any
+                const existingReaction = messageElement.querySelector('.message-reaction');
                 if (existingReaction) {
-                    // Increment count
-                    const countElement = existingReaction.querySelector('.reaction-count');
-                    let count = parseInt(countElement.textContent);
-                    countElement.textContent = (count + 1).toString();
-
-                    // Add animation
-                    existingReaction.classList.remove('animation-reactionAppear');
-                    void existingReaction.offsetWidth; // Force reflow
-                    existingReaction.classList.add('animation-reactionAppear');
-                } else {
-                    // Create new reaction
-                    const reaction = document.createElement('div');
-                    reaction.className = 'message-reaction';
-                    reaction.setAttribute('data-emoji', emoji);
-                    reaction.innerHTML = `${emoji} <span class="reaction-count">1</span>`;
-                    messageElement.appendChild(reaction);
+                    existingReaction.remove();
                 }
+
+                // Add new reaction
+                const reaction = document.createElement('div');
+                reaction.className = 'message-reaction';
+                reaction.innerHTML = `${emoji} <span class="reaction-count">1</span>`;
+                messageElement.appendChild(reaction);
             }
 
-            // Image preview modal handlers
-            function openImagePreview(imageSrc) {
-                imagePreviewImg.src = imageSrc;
+            // Open image preview modal
+            function openImagePreview(src) {
+                imagePreviewImg.src = src;
                 imagePreviewModal.classList.add('visible');
             }
 
+            // Close image preview modal
             function closeImagePreview() {
                 imagePreviewModal.classList.remove('visible');
+                // Clear src after transition
+                setTimeout(() => {
+                    imagePreviewImg.src = '';
+                }, 300);
             }
 
-            imagePreviewClose.addEventListener('click', closeImagePreview);
-            imagePreviewModal.addEventListener('click', function(e) {
-                if (e.target === imagePreviewModal) {
-                    closeImagePreview();
-                }
-            });
-
-            // Helper function to get current time
-            function getCurrentTime() {
-                const now = new Date();
-                let hours = now.getHours();
-                const minutes = now.getMinutes().toString().padStart(2, '0');
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; // Convert 0 to 12
-                return `${hours}:${minutes} ${ampm}`;
+            // Utility to escape HTML
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
 
-            // Initialize the app
+            // Initialize the application
             init();
         });
     </script>
 </body>
-</html>
 </html>
