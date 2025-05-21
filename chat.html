@@ -145,7 +145,7 @@
             display: flex;
             align-items: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            z-index: 10;
+            z-index: 100;
             position: sticky;
             top: 0;
             box-shadow: var(--shadow-sm);
@@ -536,12 +536,12 @@
             padding: 8px 16px;
             font-size: 11px;
             color: var(--text-secondary);
-            animation: slideUp 0.8s ease-out;
+            animation: slideUp 1.2s ease-out; /* Changed from 0.8s to 1.2s */
         }
-        
+
         @keyframes slideUp {
             0% { transform: translateY(20px); opacity: 0; }
-            70% { transform: translateY(5px); opacity: 0.8; }
+            50% { transform: translateY(5px); opacity: 0.8; }
             100% { transform: translateY(0); opacity: 1; }
         }
 
@@ -1568,17 +1568,17 @@
 
             // Initialize the chat
             async function initChat() {
+                // Remove any existing loading state first
+                const initialLoading = document.getElementById('initial-loading');
+                if (initialLoading) {
+                    initialLoading.remove();
+                }
+                
                 // Get user name
                 const userName = localStorage.getItem('samia_user_name') || 'friend';
 
                 // Send initial message
                 await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
-
-                // Remove loading state
-                const initialLoading = document.getElementById('initial-loading');
-                if (initialLoading) {
-                    initialLoading.remove();
-                }
             }
 
             // Setup event listeners
@@ -2184,12 +2184,16 @@
                 const messageElement = container.querySelector('.message');
                 if (images && images.length > 0 && messageElement) {
                     images.forEach(imgSrc => {
+                        // Check if it's a base64 string or URL
+                        const isBase64 = imgSrc.startsWith('data:image');
                         const img = document.createElement('img');
-                        img.src = imgSrc;
+                        img.src = isBase64 ? imgSrc : `data:image/jpeg;base64,${imgSrc}`;
                         img.className = 'message-image';
                         img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
-                        img.addEventListener('click', () => openImagePreview(imgSrc));
-                        messageElement.appendChild(img);
+                        img.addEventListener('click', () => openImagePreview(img.src));
+                        
+                        // Insert image before timestamp
+                        messageElement.insertBefore(img, messageElement.querySelector('.message-time'));
                     });
                 }
 
