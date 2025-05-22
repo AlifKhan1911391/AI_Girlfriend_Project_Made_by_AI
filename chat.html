@@ -344,6 +344,8 @@
             word-wrap: break-word;
             position: relative;
             margin-bottom: 2px;
+            min-height: 40px; /* Ensure container has height for images */
+            overflow: visible; /* Ensure images don't get clipped */
         }
 
         .message p {
@@ -1107,6 +1109,13 @@
             transition: transform 0.2s ease;
             border: 2px solid rgba(0, 0, 0, 0.1);
         }
+        
+        /* Add specific styling for images in user messages */
+        .user-message .message-image {
+            background: white;
+            padding: 4px;
+            border-radius: 8px;
+        }
 
         .dark-mode .message-image {
             border-color: rgba(255, 255, 255, 0.1);
@@ -1750,14 +1759,20 @@
                 // Photo preview send
                 photoPreviewSend.addEventListener('click', function() {
                     photoPreviewContainer.classList.remove('visible');
-                    // Ensure we have the photo data before sending
-                    if (currentPhotoData) {
-                        console.log('Sending photo from preview:', currentPhotoData.substring(0, 30) + '...');
+                    
+                    // Verify valid image data
+                    if (currentPhotoData && currentPhotoData.startsWith('data:image')) {
                         sendMessage(true);
                     } else {
-                        console.error('No photo data available');
-                        addMessage({error: true, message: "Error processing photo. Please try again."}, false, true);
+                        console.error('No valid photo data to send');
+                        addMessage({ error: true, message: "No photo to send" }, false, true);
                     }
+                    
+                    // Clear preview regardless of success
+                    setTimeout(() => {
+                        photoPreviewImage.src = '';
+                        currentPhotoData = null;
+                    }, 300);
                 });
 
                 // Close emoji picker and reaction panel when clicking elsewhere
@@ -1786,6 +1801,13 @@
 
                 // Don't send empty messages unless there's a photo
                 if (!messageText && !withPhoto) return;
+                
+                // Validate photo data before sending
+                if (withPhoto && !currentPhotoData?.startsWith('data:image')) {
+                    console.error('Invalid photo data:', currentPhotoData);
+                    addMessage({ error: true, message: "Invalid image format" }, false, true);
+                    return;
+                }
 
                 // Add to conversation history
                 conversationHistory.push({
@@ -2122,12 +2144,20 @@
                                 img.className = 'message-image';
                                 img.alt = 'Samia sent an image';
                                 img.style.display = 'block'; // Ensure image is displayed as block
-                                // Removed maxWidth inline style to allow CSS class to take effect
+                                img.style.maxWidth = '100%'; // Ensure image fits in container
                                 img.style.marginTop = '8px'; // Add some spacing
                                 img.style.marginBottom = '8px';
                                 
                                 // Add click event for preview
                                 img.addEventListener('click', () => openImagePreview(img.src));
+                                
+                                // Add onload event to ensure proper scroll behavior after image loading
+                                img.onload = function() {
+                                    // Update scroll position after image loads
+                                    if (isScrolledToBottom) {
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                };
                                 
                                 // Append to message element
                                 messageElement.appendChild(img);
@@ -2226,6 +2256,11 @@
                     messageContent = message;
                 }
 
+                // Add spacer for empty messages with images
+                if (messageContent === '' && images?.length > 0) {
+                    messageContent = '<div style="height: 4px;"></div>'; // Invisible spacer
+                }
+
                 messageHTML += `<div class="message${errorClass}${messageClass}${sendingClass}">`;
                 messageHTML += messageContent;
 
@@ -2271,12 +2306,20 @@
                         img.className = 'message-image';
                         img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
                         img.style.display = 'block'; // Ensure image is displayed as block
-                        // Removed maxWidth inline style to allow CSS class to take effect
+                        img.style.maxWidth = '100%'; // Ensure image fits in container
                         img.style.marginTop = '8px'; // Add some spacing
                         img.style.marginBottom = '8px';
                         
                         // Add click event for preview
                         img.addEventListener('click', () => openImagePreview(img.src));
+                        
+                        // Add onload event to ensure proper scroll behavior after image loading
+                        img.onload = function() {
+                            // Update scroll position after image loads
+                            if (isScrolledToBottom) {
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        };
                         
                         // Insert image before timestamp
                         const timestamp = messageElement.querySelector('.message-time');
@@ -2292,9 +2335,16 @@
                     });
                 }
 
-                // Scroll to bottom
+                // Scroll to bottom with timeout to account for image rendering delay
                 if (isScrolledToBottom) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Add timeout to account for image rendering delay
+                    setTimeout(() => {
+                        if (isScrolledToBottom) {
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
+                    }, 100);
                 }
 
                 // Setup message details and reactions
@@ -2545,8 +2595,19 @@
 
             // Image preview modal handlers
             function openImagePreview(imageSrc) {
-                imagePreviewImg.src = imageSrc;
-                imagePreviewModal.classList.add('visible');
+                // Create new image to handle loading
+                const newImg = new Image();
+                newImg.src = imageSrc;
+                
+                newImg.onload = () => {
+                    imagePreviewImg.src = imageSrc;
+                    imagePreviewModal.classList.add('visible');
+                };
+                
+                newImg.onerror = () => {
+                    console.error('Failed to load preview image');
+                    addMessage({ error: true, message: "Couldn't load image" }, false, true);
+                };
             }
 
             function closeImagePreview() {
