@@ -146,11 +146,28 @@
             align-items: center;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             z-index: 100;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 100%;
             box-shadow: var(--shadow-sm);
             transition: background-color var(--transition-normal);
             will-change: background-color;
+        }
+        
+        @media (min-width: 768px) {
+            .chat-header {
+                max-width: 768px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 100%;
+            }
+        }
+        
+        .chat-messages {
+            margin-top: 65px; /* Add space for fixed header */
         }
 
         .back-button {
@@ -1733,7 +1750,14 @@
                 // Photo preview send
                 photoPreviewSend.addEventListener('click', function() {
                     photoPreviewContainer.classList.remove('visible');
-                    sendMessage(true);
+                    // Ensure we have the photo data before sending
+                    if (currentPhotoData) {
+                        console.log('Sending photo from preview:', currentPhotoData.substring(0, 30) + '...');
+                        sendMessage(true);
+                    } else {
+                        console.error('No photo data available');
+                        addMessage({error: true, message: "Error processing photo. Please try again."}, false, true);
+                    }
                 });
 
                 // Close emoji picker and reaction panel when clicking elsewhere
@@ -1780,6 +1804,11 @@
                     withPhoto ? [currentPhotoData] : null, // Pass photo data as array
                     true
                 );
+                
+                // Debug log for photo data
+                if (withPhoto && currentPhotoData) {
+                    console.log('Photo data being sent:', currentPhotoData.substring(0, 30) + '...');
+                }
 
                 // Clear input and reset height
                 messageInput.value = '';
@@ -2067,12 +2096,44 @@
                         // All segments typed, add images if any
                         if (images && images.length > 0) {
                             images.forEach(imgSrc => {
+                                if (!imgSrc) return; // Skip if image source is null or undefined
+                                
+                                // Create image element
                                 const img = document.createElement('img');
-                                img.src = imgSrc;
+                                
+                                // Handle different image formats
+                                if (typeof imgSrc === 'string') {
+                                    // Check if it's already a data URL
+                                    if (imgSrc.startsWith('data:')) {
+                                        img.src = imgSrc;
+                                    } else if (imgSrc.startsWith('http')) {
+                                        // External URL
+                                        img.src = imgSrc;
+                                    } else {
+                                        // Assume it's base64 without prefix
+                                        img.src = `data:image/jpeg;base64,${imgSrc}`;
+                                    }
+                                } else {
+                                    console.error('Invalid image source:', imgSrc);
+                                    return;
+                                }
+                                
+                                // Set image properties
                                 img.className = 'message-image';
                                 img.alt = 'Samia sent an image';
-                                img.addEventListener('click', () => openImagePreview(imgSrc));
+                                img.style.display = 'block'; // Ensure image is displayed as block
+                                img.style.maxWidth = '100%'; // Ensure image fits in container
+                                img.style.marginTop = '8px'; // Add some spacing
+                                img.style.marginBottom = '8px';
+                                
+                                // Add click event for preview
+                                img.addEventListener('click', () => openImagePreview(img.src));
+                                
+                                // Append to message element
                                 messageElement.appendChild(img);
+                                
+                                // Log for debugging
+                                console.log('Bot image added to message:', img.src.substring(0, 30) + '...');
                             });
                         }
 
@@ -2184,16 +2245,50 @@
                 const messageElement = container.querySelector('.message');
                 if (images && images.length > 0 && messageElement) {
                     images.forEach(imgSrc => {
-                        // Check if it's a base64 string or URL
-                        const isBase64 = imgSrc.startsWith('data:image');
+                        if (!imgSrc) return; // Skip if image source is null or undefined
+                        
+                        // Create image element
                         const img = document.createElement('img');
-                        img.src = isBase64 ? imgSrc : `data:image/jpeg;base64,${imgSrc}`;
+                        
+                        // Handle different image formats
+                        if (typeof imgSrc === 'string') {
+                            // Check if it's already a data URL
+                            if (imgSrc.startsWith('data:')) {
+                                img.src = imgSrc;
+                            } else if (imgSrc.startsWith('http')) {
+                                // External URL
+                                img.src = imgSrc;
+                            } else {
+                                // Assume it's base64 without prefix
+                                img.src = `data:image/jpeg;base64,${imgSrc}`;
+                            }
+                        } else {
+                            console.error('Invalid image source:', imgSrc);
+                            return;
+                        }
+                        
+                        // Set image properties
                         img.className = 'message-image';
                         img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
+                        img.style.display = 'block'; // Ensure image is displayed as block
+                        img.style.maxWidth = '100%'; // Ensure image fits in container
+                        img.style.marginTop = '8px'; // Add some spacing
+                        img.style.marginBottom = '8px';
+                        
+                        // Add click event for preview
                         img.addEventListener('click', () => openImagePreview(img.src));
                         
                         // Insert image before timestamp
-                        messageElement.insertBefore(img, messageElement.querySelector('.message-time'));
+                        const timestamp = messageElement.querySelector('.message-time');
+                        if (timestamp) {
+                            messageElement.insertBefore(img, timestamp);
+                        } else {
+                            // If no timestamp, append to end of message
+                            messageElement.appendChild(img);
+                        }
+                        
+                        // Log for debugging
+                        console.log('Image added to message:', img.src.substring(0, 30) + '...');
                     });
                 }
 
@@ -2481,5 +2576,4 @@
         });
     </script>
 </body>
-</html>
 </html>
