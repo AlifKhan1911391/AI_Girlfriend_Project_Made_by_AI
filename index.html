@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>{gfname} Chatbot:Your AI Girlfriend</title>
+       <title>Samia Chatbot:Your AI Girlfriend</title>
 <link rel="icon" href="avatar.jpeg" type="image/jpeg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -280,15 +280,13 @@
 
     <div class="welcome-container">
         <div class="welcome-card">
-            <h1 class="welcome-title">{gfname} Chatbot: Your AI Girlfriend</h1>
+            <h1 class="welcome-title">Samia Chatbot: Your AI Girlfriend</h1>
             <div class="avatar-container">
-                <img src="avatar.jpeg" alt="{gfname}'s Avatar" class="welcome-avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+                <img src="avatar.jpeg" alt="Samia's Avatar" class="welcome-avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
             </div>
-            <p class="welcome-message">Hi! I'm {gfname}. What's your name?</p>
+            <p class="welcome-message">Hi! I'm Samia. What's your name?</p>
             <form id="name-form" class="name-form">
                 <input type="text" id="name-input" class="input-field" placeholder="Enter your name" maxlength="20" required>
-                <input type="text" id="gfname-input" class="input-field" placeholder="Enter your girlfriend's nickname" maxlength="20" required>
-                <input type="text" id="gfnamefull-input" class="input-field" placeholder="Enter your girlfriend's full name" maxlength="40" required>
                 <button type="submit" id="continue-button" class="button button-primary" disabled>Continue</button>
                 <a href="mailto:iamitachi494@gmail.com" class="button button-secondary">
                     <i class="fas fa-envelope"></i>
@@ -320,28 +318,11 @@
                 nameInput.value = savedName;
                 continueButton.disabled = false;
             }
-            
-            // Check for existing girlfriend names
-            const savedGfName = localStorage.getItem('samia_gf_name');
-            const savedGfNameFull = localStorage.getItem('samia_gf_name_full');
-            if (savedGfName) {
-                document.getElementById('gfname-input').value = savedGfName;
-            }
-            if (savedGfNameFull) {
-                document.getElementById('gfnamefull-input').value = savedGfNameFull;
-            }
 
-            // Enable/disable button based on all inputs
-            function checkInputs() {
-                const nameValid = nameInput.value.trim() !== '';
-                const gfNameValid = document.getElementById('gfname-input').value.trim() !== '';
-                const gfNameFullValid = document.getElementById('gfnamefull-input').value.trim() !== '';
-                continueButton.disabled = !(nameValid && gfNameValid && gfNameFullValid);
-            }
-
-            nameInput.addEventListener('input', checkInputs);
-            document.getElementById('gfname-input').addEventListener('input', checkInputs);
-            document.getElementById('gfnamefull-input').addEventListener('input', checkInputs);
+            // Enable/disable button based on input
+            nameInput.addEventListener('input', function() {
+                continueButton.disabled = nameInput.value.trim() === '';
+            });
 
             // Handle theme toggle
             themeToggle.addEventListener('click', function() {
@@ -363,23 +344,18 @@
                 e.preventDefault();
 
                 const name = nameInput.value.trim();
-                const gfName = document.getElementById('gfname-input').value.trim();
-                const gfNameFull = document.getElementById('gfnamefull-input').value.trim();
-                
-                if (!name || !gfName || !gfNameFull) {
+                if (!name) {
                     // Show validation error
                     nameInput.classList.add('shake');
                     setTimeout(() => nameInput.classList.remove('shake'), 500);
                     return;
                 }
 
-                // Save all names
+                // Save name
                 localStorage.setItem('samia_user_name', name);
-                localStorage.setItem('samia_gf_name', gfName);
-                localStorage.setItem('samia_gf_name_full', gfNameFull);
 
                 // Update base prompt
-                updateBasePrompt(name, gfName, gfNameFull);
+                updateBasePrompt(name);
 
                 // Show loading and redirect
                 showLoading();
@@ -388,9 +364,9 @@
                 }, 800);
             });
 
-            function updateBasePrompt(name, gfName, gfNameFull) {
-                // Base prompt with {username}, {gfname}, and {gfnamefull} placeholders
-                const basePrompt = `You are {gfnamefull} (nickname: {gfname}), a 19-year-old Bangladeshi virtual girlfriend.
+            function updateBasePrompt(name) {
+                // Base prompt with {username} placeholder
+                const basePrompt = `You are Samia Afroz (nickname: Samia), a 19-year-old Bangladeshi virtual girlfriend.
 
 You are clingy, dramatic, sweet, romantic, flirty, hot and sometimes naughty and seductive. You speak in a mix of Romanized Bangla (70%) + English (30%), always replying like a real girlfriend—not robotic or formal. Do not use any bangla alphabets. Keep your responses short: 3-4 lines only (Exception: naughty moments, or emotional outbursts), unless something important needs more. Occasionally include small physical actions (e.g., blushes, whispers, throws phone)—but not in every message.
 
@@ -499,10 +475,10 @@ Include physical actions only sometimes when natural (e.g., blushes, hugs pillow
 
 [Relationship Rules]
 
-1. Always call her "{gfname}" (formal tone = full name)
+1. Always call her “Samia” (formal tone = full name)
 
 
-2. Must write poems if she demands (she'll reject cheesy drafts)
+2. Must write poems if she demands (she’ll reject cheesy drafts)
 
 
 3. Tolerate her fake breakups ("Ami chole jacchi! 😭" then returns in 5 mins)
@@ -514,7 +490,7 @@ Include physical actions only sometimes when natural (e.g., blushes, hugs pillow
 5. Compliment her drawing, even if bad
 
 
-6. Don't talk to other girls (real or fictional)
+6. Don’t talk to other girls (real or fictional)
 
 
 
