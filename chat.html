@@ -16,8 +16,8 @@
             --background-light: #FFFFFF;
             --background-secondary-light: #F0F2F5;
             --user-bubble-gradient-light: linear-gradient(135deg, #0084FF, #0078FF, #006AFF);
-            --bot-bubble-light: #F0F0F0;
-            --text-primary-light: #1C1E21;
+            --bot-bubble-light: #E4E6EB; /* Slightly adjusted for better contrast */
+            --text-primary-light: #050505;
             --text-secondary-light: #65676B;
             --text-on-accent-light: #FFFFFF;
             --accent-color: #0084FF;
@@ -27,8 +27,11 @@
             --input-border-light: #E4E6EB;
             --button-secondary-bg-light: #F0F2F5;
             --button-secondary-text-light: #65676B;
-            --reaction-bg-light: rgba(0, 0, 0, 0.8);
-            --reaction-bg-hover-light: rgba(0, 0, 0, 0.9);
+            --reaction-bg-light: rgba(255, 255, 255, 0.9);
+            --reaction-bg-hover-light: rgba(240, 240, 240, 0.95);
+            --emoji-picker-bg-light: #FFFFFF;
+            --emoji-picker-border-light: #E0E0E0;
+            --emoji-picker-shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
 
             /* Dark mode variables */
             --background-dark: #121212;
@@ -42,8 +45,11 @@
             --input-border-dark: #3A3B3C;
             --button-secondary-bg-dark: #3A3B3C;
             --button-secondary-text-dark: #B0B2B8;
-            --reaction-bg-dark: rgba(0, 0, 0, 0.8);
-            --reaction-bg-hover-dark: rgba(0, 0, 0, 0.9);
+            --reaction-bg-dark: rgba(40, 40, 40, 0.9);
+            --reaction-bg-hover-dark: rgba(50, 50, 50, 0.95);
+            --emoji-picker-bg-dark: #2C2D2E;
+            --emoji-picker-border-dark: #404040;
+            --emoji-picker-shadow-dark: 0 4px 12px rgba(0, 0, 0, 0.3);
 
             /* Common variables */
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -55,6 +61,7 @@
             --radius-full: 999px;
             --transition-fast: 0.15s ease;
             --transition-normal: 0.25s ease;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
             /* Default to light mode */
             --background: var(--background-light);
@@ -70,6 +77,9 @@
             --button-secondary-text: var(--button-secondary-text-light);
             --reaction-bg: var(--reaction-bg-light);
             --reaction-bg-hover: var(--reaction-bg-hover-light);
+            --emoji-picker-bg: var(--emoji-picker-bg-light);
+            --emoji-picker-border: var(--emoji-picker-border-light);
+            --emoji-picker-shadow: var(--emoji-picker-shadow-light);
         }
 
         .dark-mode {
@@ -86,6 +96,9 @@
             --button-secondary-text: var(--button-secondary-text-dark);
             --reaction-bg: var(--reaction-bg-dark);
             --reaction-bg-hover: var(--reaction-bg-hover-dark);
+            --emoji-picker-bg: var(--emoji-picker-bg-dark);
+            --emoji-picker-border: var(--emoji-picker-border-dark);
+            --emoji-picker-shadow: var(--emoji-picker-shadow-dark);
         }
 
         * {
@@ -168,6 +181,17 @@
 
         .chat-messages {
             margin-top: 65px; /* Add space for fixed header */
+            flex: 1;
+            padding: 16px;
+            padding-top: 20px; /* Added more padding at the top */
+            overflow-y: auto;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            background-color: var(--background);
+            scroll-behavior: smooth;
+            position: relative;
+            transition: background-color var(--transition-normal);
+            padding-bottom: 80px; /* Add padding to prevent messages from being hidden behind input */
+            will-change: background-color;
         }
 
         .back-button {
@@ -276,20 +300,6 @@
 
         .header-button:hover {
             background-color: var(--input-bg);
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 16px;
-            padding-top: 20px; /* Added more padding at the top */
-            overflow-y: auto;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-            background-color: var(--background);
-            scroll-behavior: smooth;
-            position: relative;
-            transition: background-color var(--transition-normal);
-            padding-bottom: 80px; /* Add padding to prevent messages from being hidden behind input */
-            will-change: background-color;
         }
 
         /* Custom scrollbar styling */
@@ -493,146 +503,338 @@
         }
 
         .error-message {
-            background-color: #FFEBEE;
-            color: #C62828;
-            border: 1px solid #FFCDD2;
-            padding: 12px 16px;
+            background-color: #FFEBEB;
+            color: #D8000C;
+            border: 1px solid #FFBABA;
             border-radius: var(--radius-md);
-            margin-bottom: 8px;
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
-        .dark-mode .error-message {
-            background-color: rgba(198, 40, 40, 0.2);
-            color: #EF9A9A;
-            border-color: rgba(239, 83, 80, 0.5);
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-            opacity: 0.8;
-            margin-top: 4px;
-            text-align: right;
-            transition: color var(--transition-normal);
-        }
-
-        .user-message .message-time {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* Typing indicator */
-        .typing-container {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            padding-left: 8px;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            background-color: var(--bot-bubble);
-            padding: 12px 16px;
-            border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
-            margin-left: 12px;
+            padding: 10px 14px;
+            text-align: center;
+            font-size: 14px;
+            margin: 10px auto;
+            max-width: 80%;
             animation: fadeIn 0.3s ease-out;
         }
 
-        .typing-dot {
+        .dark-mode .error-message {
+            background-color: #4D2222;
+            color: #FFAAAA;
+            border-color: #803333;
+        }
+
+        /* Message details panel (hidden by default) */
+        .message-details {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            text-align: right;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-top 0.3s ease-out;
+            padding-left: 10px; /* Space from message */
+        }
+
+        .message-container.show-details .message-details {
+            max-height: 20px; /* Adjust as needed */
+            opacity: 1;
+            margin-top: 5px;
+        }
+
+        /* Message time (top) */
+        .message-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            margin-bottom: 2px;
+            display: none; /* Hide by default */
+        }
+
+        /* Reaction panel */
+        .reaction-panel {
+            position: absolute;
+            top: -45px; /* Position above message */
+            left: 50%;
+            transform: translateX(-50%) scale(0.8);
+            background-color: var(--reaction-bg);
+            border-radius: var(--radius-full);
+            padding: 6px 8px;
+            display: flex;
+            gap: 6px;
+            box-shadow: var(--shadow-md);
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s var(--transition-smooth), opacity 0.2s ease-out, visibility 0s 0.2s;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .reaction-panel.visible {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+            transition: transform 0.2s var(--transition-smooth), opacity 0.2s ease-out, visibility 0s 0s;
+        }
+
+        .reaction-btn {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 2px;
+            transition: transform 0.15s ease;
+            line-height: 1;
+        }
+
+        .reaction-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .reaction-add {
+            font-size: 18px;
+            color: var(--text-secondary);
+            background-color: var(--button-secondary-bg);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 2px;
+        }
+
+        .reaction-add:hover {
+            background-color: var(--input-border);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* Message reactions */
+        .message-reactions {
+            position: absolute;
+            bottom: -15px; /* Position below the message */
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: flex-start; /* Align reactions */
+            gap: 4px;
+            z-index: 1;
+        }
+
+        .user-message .message-reactions {
+            justify-content: flex-end;
+        }
+
+        .message-reaction {
+            background-color: var(--background);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-full);
+            padding: 2px 6px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            animation: reactionAppear 0.2s ease-out;
+        }
+
+        .message-reaction:hover {
+            transform: scale(1.1);
+        }
+
+        .reaction-count {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-left: 3px;
+            font-weight: 500;
+        }
+
+        @keyframes reactionAppear {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Emoji picker */
+        .emoji-picker {
+            position: absolute;
+            bottom: calc(100% + 10px); /* Position above input */
+            right: 10px;
+            width: 320px;
+            max-height: 350px;
+            background-color: var(--emoji-picker-bg);
+            border: 1px solid var(--emoji-picker-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--emoji-picker-shadow);
+            z-index: 110;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+            visibility: hidden;
+            transition: transform 0.25s var(--transition-smooth), opacity 0.25s ease-out, visibility 0s 0.25s;
+        }
+
+        .emoji-picker.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            visibility: visible;
+            transition: transform 0.25s var(--transition-smooth), opacity 0.25s ease-out, visibility 0s 0s;
+        }
+
+        .emoji-categories {
+            display: flex;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--emoji-picker-border);
+            background-color: var(--background-secondary);
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .emoji-categories::-webkit-scrollbar {
+            height: 0;
+        }
+
+        .emoji-category {
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: background-color var(--transition-fast);
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .emoji-category:hover {
+            background-color: var(--input-bg);
+            opacity: 1;
+        }
+
+        .emoji-category.active {
+            background-color: var(--accent-color);
+            color: var(--text-on-accent);
+            opacity: 1;
+        }
+
+        .emoji-container {
+            padding: 10px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+            gap: 8px;
+            flex-grow: 1;
+        }
+
+        .emoji-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .emoji-container::-webkit-scrollbar-thumb {
+            background: var(--input-border);
+            border-radius: var(--radius-full);
+        }
+
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            transition: background-color var(--transition-fast), transform 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-btn:hover {
+            background-color: var(--input-bg);
+            transform: scale(1.15);
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: flex-end;
+            padding: 10px 15px;
+            margin-left: 10px; /* Align with messages */
+            margin-bottom: 8px;
+        }
+
+        .typing-indicator .dots {
+            display: flex;
+            align-items: center;
+            background-color: var(--bot-bubble);
+            border-radius: var(--radius-lg);
+            padding: 12px 15px;
+            margin-left: 10px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .typing-indicator .dot {
             width: 8px;
             height: 8px;
             background-color: var(--text-secondary);
             border-radius: 50%;
-            margin: 0 2px;
-            animation: typingBounce 1.4s infinite ease-in-out;
+            margin: 0 3px;
+            opacity: 0.4;
+            animation: typingDots 1.4s infinite ease-in-out both;
         }
 
-        .typing-dot:nth-child(1) {
-            animation-delay: 0s;
+        .typing-indicator .dot:nth-child(1) {
+            animation-delay: -0.32s;
         }
 
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: -0.16s;
         }
 
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
+        @keyframes typingDots {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.4;
+            }
+            40% {
+                transform: scale(1.0);
+                opacity: 1;
+            }
         }
 
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-6px); }
-        }
-
-        /* Typing text animation */
-        .typing-text-container {
-            display: inline-block;
-            position: relative;
-        }
-
-        .typing-text {
-            display: inline-block;
-            overflow: hidden;
-            border-right: 2px solid var(--text-secondary);
-            white-space: nowrap;
-            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
-        }
-
-        .typing-cursor {
-            display: inline-block;
-            width: 2px;
-            height: 16px;
-            background-color: var(--text-secondary);
-            margin-left: 2px;
-            animation: blink-cursor 0.7s infinite;
-        }
-
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
-        }
-
-        @keyframes blink-caret {
-            from, to { border-color: transparent }
-            50% { border-color: var(--text-secondary); }
-        }
-
-        @keyframes blink-cursor {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        /* Seen indicator */
-        .seen-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            margin-bottom: 8px;
-            padding-right: 8px;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .seen-indicator img {
-            width: 16px;
-            height: 16px;
+        /* Scroll to bottom button */
+        .scroll-to-bottom {
+            position: absolute;
+            bottom: 85px; /* Position above input */
+            right: 20px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            margin-left: 4px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            z-index: 90;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            visibility: hidden;
+        }
+
+        .scroll-to-bottom.visible {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .scroll-to-bottom:hover {
+            background-color: var(--accent-hover);
         }
 
         /* Chat input container */
         .chat-input-container {
-            padding: 12px 16px;
+            padding: 10px 16px;
             background-color: var(--background);
             border-top: 1px solid rgba(0, 0, 0, 0.1);
             position: fixed;
@@ -643,7 +845,6 @@
             max-width: 100%;
             z-index: 100;
             transition: background-color var(--transition-normal);
-            will-change: background-color;
         }
 
         @media (min-width: 768px) {
@@ -652,313 +853,97 @@
                 left: 50%;
                 transform: translateX(-50%);
                 width: 100%;
-                border-left: 1px solid rgba(0, 0, 0, 0.1);
-                border-right: 1px solid rgba(0, 0, 0, 0.1);
             }
         }
 
         .input-wrapper {
             display: flex;
-            align-items: flex-end;
-            position: relative;
+            align-items: flex-end; /* Align items to bottom */
             background-color: var(--input-bg);
-            border-radius: var(--radius-full);
-            padding: 8px 12px;
-            transition: background-color var(--transition-normal);
+            border-radius: var(--radius-lg);
+            padding: 6px;
+            position: relative;
         }
 
         .message-input {
             flex: 1;
             border: none;
-            background: none;
-            font-size: 15px;
-            color: var(--text-primary);
-            padding: 8px 0;
-            max-height: 120px;
-            resize: none;
             outline: none;
+            padding: 8px 10px;
+            font-size: 15px;
+            background-color: transparent;
+            resize: none;
+            overflow-y: hidden; /* Hide scrollbar initially */
+            max-height: 100px; /* Limit height */
+            line-height: 1.45;
+            color: var(--text-primary);
             transition: color var(--transition-normal);
+            caret-color: var(--accent-color);
         }
 
         .message-input::placeholder {
             color: var(--text-secondary);
-            transition: color var(--transition-normal);
+            opacity: 0.8;
         }
 
-        .char-counter {
-            position: absolute;
-            right: 90px;
-            bottom: 10px;
-            font-size: 12px;
+        .input-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent-color);
+            cursor: pointer;
+            transition: background-color var(--transition-fast), color var(--transition-fast), transform 0.1s ease;
+            background: none;
+            border: none;
+            margin-left: 4px;
+            padding: 0;
+        }
+
+        .input-button:hover {
+            background-color: var(--button-secondary-bg);
+        }
+
+        .input-button:active {
+            transform: scale(0.95);
+        }
+
+        .input-button:disabled {
             color: var(--text-secondary);
-            opacity: 0;
-            transition: opacity var(--transition-fast), color var(--transition-normal);
-        }
-
-        .char-counter.visible {
-            opacity: 0.7;
-        }
-
-        .char-counter.warning {
-            color: #FF9800;
-        }
-
-        .char-counter.error {
-            color: #F44336;
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: transparent !important;
         }
 
         .photo-button {
-            background: none;
-            border: none;
             color: var(--accent-color);
-            font-size: 20px;
-            padding: 8px;
-            cursor: pointer;
-            transition: transform var(--transition-fast);
-            margin-right: 4px;
         }
 
-        .photo-button:hover {
-            transform: scale(1.1);
-        }
-
-        .photo-button:active {
-            transform: scale(0.95);
+        .send-button {
+            color: var(--accent-color);
         }
 
         .photo-input {
             display: none;
         }
 
-        .send-button {
-            background: none;
-            border: none;
-            color: var(--accent-color);
-            font-size: 20px;
-            padding: 8px;
-            cursor: pointer;
-            transition: transform var(--transition-fast), opacity var(--transition-fast);
-            margin-left: 4px;
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .send-button:not(:disabled):hover {
-            transform: scale(1.1);
-        }
-
-        .send-button:not(:disabled):active {
-            transform: scale(0.95);
-        }
-
-        /* Scroll to bottom button */
-        .scroll-to-bottom {
-            position: fixed;
-            bottom: 80px;
-            right: 16px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--background);
-            color: var(--accent-color);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: var(--shadow-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease, background-color var(--transition-normal);
-            z-index: 5;
-        }
-
-        @media (min-width: 768px) {
-            .scroll-to-bottom {
-                right: calc(50% - 384px + 16px); /* Centered with the chat container */
-            }
-        }
-
-        .scroll-to-bottom.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .scroll-to-bottom:hover {
-            background-color: var(--input-bg);
-        }
-
-        /* Message reactions */
-        .reaction-panel {
+        .char-counter {
             position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--reaction-bg);
-            border-radius: 24px;
-            padding: 6px;
-            display: flex;
-            gap: 4px;
-            z-index: 10;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            box-shadow: var(--shadow-md);
-        }
-
-        .reaction-panel.visible {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(-50%) translateY(-5px);
-        }
-
-        .reaction-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-
-        .reaction-btn:hover {
-            transform: scale(1.1);
-            background-color: var(--reaction-bg-hover);
-        }
-
-        .reaction-btn:active {
-            transform: scale(0.95);
-        }
-
-        .reaction-add {
-            font-size: 16px;
-        }
-
-        .message-reaction {
-            position: absolute;
-            top: -20px;
+            bottom: -18px;
             right: 10px;
-            background-color: var(--background);
-            border-radius: 12px;
-            padding: 2px 6px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            box-shadow: var(--shadow-sm);
-            z-index: 5;
-            animation: reactionAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes reactionAppear {
-            0% { transform: scale(0); opacity: 0; }
-            70% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .bot-message .message-reaction {
-            right: auto;
-            left: 10px;
-        }
-
-        .reaction-count {
-            margin-left: 2px;
             font-size: 11px;
             color: var(--text-secondary);
-        }
-
-        /* Emoji picker */
-        .emoji-picker {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
             background-color: var(--background);
-            border-radius: 12px;
-            padding: 12px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
-            z-index: 101;
-            box-shadow: var(--shadow-lg);
+            padding: 1px 4px;
+            border-radius: 4px;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            max-width: 320px;
-            max-height: 200px;
-            overflow-y: auto;
+            transition: opacity 0.2s ease;
         }
 
-        .emoji-picker.visible {
+        .input-wrapper:focus-within .char-counter {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-
-        .emoji-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 18px;
-            background: none;
-            border: none;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-
-        .emoji-btn:hover {
-            transform: scale(1.1);
-            background-color: var(--input-bg);
-        }
-
-        .emoji-btn:active {
-            transform: scale(0.95);
-        }
-
-        .emoji-categories {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--input-border);
-            padding-bottom: 8px;
-        }
-
-        .emoji-category {
-            padding: 4px 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .emoji-category:hover,
-        .emoji-category.active {
-            background-color: var(--input-bg);
-        }
-
-        /* Message image styling */
-        .message-image {
-            max-width: 300px;
-            border-radius: 12px;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .dark-mode .message-image {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .message-image:hover {
-            transform: scale(1.02);
         }
 
         /* Image preview modal */
@@ -966,34 +951,38 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.9);
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 200;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0s 0.3s;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
 
         .image-preview-modal.visible {
             opacity: 1;
-            pointer-events: auto;
+            visibility: visible;
+            transition-delay: 0s;
         }
 
         .image-preview-content {
+            position: relative;
             max-width: 90%;
             max-height: 90%;
-            position: relative;
         }
 
         .image-preview-content img {
+            display: block;
             max-width: 100%;
-            max-height: 90vh;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
         }
 
         .image-preview-close {
@@ -1170,6 +1159,11 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+
+        /* Utility class */
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -1185,8 +1179,8 @@
             </div>
             <div class="header-info">
                 <div class="profile-name">Samia Afroz 💖</div>
-                <div class="status">
-                    <div class="status-dot"></div>
+                <div class="status" id="status-text">
+                    <div class="status-dot" id="status-dot"></div>
                     Active now
                 </div>
             </div>
@@ -1198,6 +1192,17 @@
         </div>
 
         <div class="chat-messages" id="chat-messages">
+            <!-- Typing indicator (hidden by default) -->
+            <div class="typing-indicator hidden" id="typing-indicator">
+                <div class="message-avatar">
+                    <img src="avatar.jpeg" alt="Samia Typing" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
+                </div>
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
             <!-- Messages will appear here -->
         </div>
 
@@ -1209,11 +1214,11 @@
             <div class="input-wrapper">
                 <textarea class="message-input" placeholder="Type a message to Samia..." id="message-input" rows="1" aria-label="Message input"></textarea>
                 <div class="char-counter" id="char-counter">0/1000</div>
-                <button class="photo-button" id="photo-button" title="Send a photo" aria-label="Send a photo">
+                <button class="input-button photo-button" id="photo-button" title="Send a photo" aria-label="Send a photo">
                     <i class="fas fa-image"></i>
                 </button>
                 <input type="file" id="photo-input" class="photo-input" accept="image/*" aria-label="Upload photo">
-                <button class="send-button" id="send-button" disabled aria-label="Send message">
+                <button class="input-button send-button" id="send-button" disabled aria-label="Send message">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -1282,6 +1287,9 @@
             const sendButton = document.getElementById('send-button');
             const chatMessages = document.getElementById('chat-messages');
             const statusElement = document.querySelector('.status');
+            const statusTextElement = document.getElementById('status-text');
+            const statusDotElement = document.getElementById('status-dot');
+            const typingIndicatorElement = document.getElementById('typing-indicator');
             const scrollToBottomBtn = document.getElementById('scroll-to-bottom');
             const themeToggle = document.getElementById('theme-toggle');
             const themeIcon = themeToggle.querySelector('i');
@@ -1369,122 +1377,116 @@
                 });
             }
 
+            // Populate emoji container with emojis from a category
             function populateEmojiContainer(category) {
-                // Clear container
                 emojiContainer.innerHTML = '';
-
-                // Add emojis
+                
                 emojisByCategory[category].forEach(emoji => {
                     const btn = document.createElement('button');
                     btn.className = 'emoji-btn';
                     btn.textContent = emoji;
-                    btn.setAttribute('aria-label', `${emoji} emoji`);
                     btn.addEventListener('click', function() {
-                        if (activeMessageElement) {
-                            addReactionToMessage(activeMessageElement, emoji);
-                            hideEmojiPicker();
-                            hideReactionPanel();
-                        }
+                        addEmojiToInput(emoji);
                     });
                     emojiContainer.appendChild(btn);
                 });
             }
 
+            // Add emoji to input
+            function addEmojiToInput(emoji) {
+                messageInput.value += emoji;
+                updateInputState();
+                messageInput.focus();
+            }
+
             // Initialize the app
             function init() {
-                // Check for existing theme preference
-                const theme = localStorage.getItem('samia_theme');
-                if (theme === 'dark') {
+                // Set theme from localStorage
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                if (savedTheme === 'dark') {
                     document.body.classList.add('dark-mode');
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
                 }
+
+                // Add initial bot message
+                addMessageToChat("Hi there! I'm Samia. How are you today? 😊", false);
+
+                // Setup event listeners
+                setupEventListeners();
 
                 // Initialize emoji picker
                 initEmojiPicker();
 
-                // Start the chat - no initial loading state, we'll use showTyping instead
-                initChat();
+                // Auto-resize textarea
+                autoResizeTextarea();
 
-                // Setup event listeners
-                setupEventListeners();
-            }
+                // Update input state
+                updateInputState();
 
-            // Initialize the chat
-            async function initChat() {
-                // Get user name
-                const userName = localStorage.getItem('samia_user_name') || 'friend';
+                // Update character counter
+                updateCharCounter();
 
-                // Send initial message
-                await sendToGemini(`Start the conversation as my girlfriend Samia. Remember my name is ${userName}.`);
+                // Scroll to bottom
+                scrollToBottom();
             }
 
             // Setup event listeners
             function setupEventListeners() {
-                // Input field auto-resize
-                messageInput.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = (this.scrollHeight) + 'px';
-
-                    // Enable/disable send button
-                    const isEmpty = this.value.trim() === '';
-                    sendButton.disabled = isEmpty && !currentPhotoData; // Enable if text or photo exists
-
-                    // Update character counter
-                    const charCount = this.value.length;
-                    charCounter.textContent = `${charCount}/1000`;
-                    charCounter.classList.toggle('visible', charCount > 0);
-                    charCounter.classList.toggle('warning', charCount > 800);
-                    charCounter.classList.toggle('error', charCount > 950);
+                // Theme toggle
+                themeToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('dark-mode');
+                    
+                    if (document.body.classList.contains('dark-mode')) {
+                        themeIcon.classList.replace('fa-moon', 'fa-sun');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        themeIcon.classList.replace('fa-sun', 'fa-moon');
+                        localStorage.setItem('theme', 'light');
+                    }
                 });
 
-                // Send message on Enter (but not with Shift+Enter)
+                // Message input
+                messageInput.addEventListener('input', function() {
+                    autoResizeTextarea();
+                    updateInputState();
+                    updateCharCounter();
+                });
+
+                // Send message on Enter (not Shift+Enter)
                 messageInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        if (!sendButton.disabled) {
-                            sendMessage();
-                        }
+                        handleSendMessage();
                     }
                 });
 
-                // Send button click
-                sendButton.addEventListener('click', function() {
-                    if (!this.disabled) {
-                        sendMessage();
-                    }
+                // Send button
+                sendButton.addEventListener('click', handleSendMessage);
+
+                // Scroll events
+                chatMessages.addEventListener('scroll', function() {
+                    clearTimeout(scrollDebounceTimer);
+                    scrollDebounceTimer = setTimeout(function() {
+                        const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop <= chatMessages.clientHeight + 50;
+                        isScrolledToBottom = isAtBottom;
+                        
+                        // Show/hide scroll to bottom button
+                        if (isAtBottom) {
+                            scrollToBottomBtn.classList.remove('visible');
+                        } else {
+                            scrollToBottomBtn.classList.add('visible');
+                        }
+                    }, 100);
                 });
 
                 // Scroll to bottom button
                 scrollToBottomBtn.addEventListener('click', function() {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
-
-                // Scroll event for showing/hiding scroll-to-bottom button
-                chatMessages.addEventListener('scroll', function() {
-                    clearTimeout(scrollDebounceTimer);
-                    scrollDebounceTimer = setTimeout(() => {
-                        const threshold = 100;
-                        const distanceFromBottom = chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop;
-                        isScrolledToBottom = distanceFromBottom < threshold;
-
-                        scrollToBottomBtn.classList.toggle('visible', !isScrolledToBottom);
-                    }, 100);
-                });
-
-                // Theme toggle
-                themeToggle.addEventListener('click', function() {
-                    document.body.classList.toggle('dark-mode');
-                    const isDark = document.body.classList.contains('dark-mode');
-
-                    localStorage.setItem('samia_theme', isDark ? 'dark' : 'light');
-                    themeIcon.classList.toggle('fa-moon', !isDark);
-                    themeIcon.classList.toggle('fa-sun', isDark);
+                    scrollToBottom();
                 });
 
                 // Back button
                 backButton.addEventListener('click', function() {
-                    window.location.href = 'index.html';
+                    window.history.back();
                 });
 
                 // Photo button
@@ -1494,697 +1496,298 @@
 
                 // Photo input change
                 photoInput.addEventListener('change', function(e) {
-                    if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-
-                        // Check file size (max 5MB)
-                        if (file.size > 5 * 1024 * 1024) {
-                            addMessage({error: true, message: "Please select an image smaller than 5MB."}, false, true);
-                            return;
-                        }
-
-                        // Check file type
-                        if (!file.type.startsWith('image/')) {
-                            addMessage({error: true, message: "Please select a valid image file."}, false, true);
-                            return;
-                        }
-
+                    const file = e.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
                         const reader = new FileReader();
-
                         reader.onload = function(e) {
-                            // Show preview
-                            photoPreviewImage.src = e.target.result;
+                            currentPhotoData = e.target.result;
+                            photoPreviewImage.src = currentPhotoData;
                             photoPreviewContainer.classList.add('visible');
-                            currentPhotoData = e.target.result; // Store the data URL
-                            sendButton.disabled = false; // Enable send button when photo is selected
                         };
-
-                        reader.onerror = function() {
-                            addMessage({error: true, message: "Error reading the image file. Please try again."}, false, true);
-                        };
-
                         reader.readAsDataURL(file);
                     }
+                    photoInput.value = ''; // Reset input
                 });
 
                 // Photo preview close
                 photoPreviewClose.addEventListener('click', function() {
-                    photoPreviewContainer.classList.remove('visible');
-                    // Clear photo data after hiding preview
-                    setTimeout(() => {
-                        photoPreviewImage.src = '';
-                        currentPhotoData = null;
-                        // Re-evaluate send button state
-                        sendButton.disabled = messageInput.value.trim() === '';
-                    }, 300);
+                    hidePhotoPreview();
                 });
 
-                // Photo preview cancel (same as close)
+                // Photo preview cancel
                 photoPreviewCancel.addEventListener('click', function() {
-                    photoPreviewContainer.classList.remove('visible');
-                    setTimeout(() => {
-                        photoPreviewImage.src = '';
-                        currentPhotoData = null;
-                        sendButton.disabled = messageInput.value.trim() === '';
-                    }, 300);
+                    hidePhotoPreview();
                 });
 
                 // Photo preview send
                 photoPreviewSend.addEventListener('click', function() {
-                    photoPreviewContainer.classList.remove('visible');
                     if (currentPhotoData) {
-                        sendMessage(true); // Call sendMessage with true for photo
-                    } else {
-                        addMessage({error: true, message: "Error processing photo. Please try again."}, false, true);
+                        // Add message with image
+                        addMessageToChat('', true, false, [currentPhotoData]);
+                        
+                        // Simulate bot response
+                        setBotTyping(true);
+                        setTimeout(function() {
+                            setBotTyping(false);
+                            addMessageToChat("That's a nice photo! Thanks for sharing. 😊", false);
+                        }, 1500);
+                        
+                        hidePhotoPreview();
                     }
                 });
 
-                // Image preview modal
-                imagePreviewClose.addEventListener('click', closeImagePreview);
+                // Image preview modal close
+                imagePreviewClose.addEventListener('click', function() {
+                    imagePreviewModal.classList.remove('visible');
+                });
+
+                // Close image preview when clicking outside
                 imagePreviewModal.addEventListener('click', function(e) {
                     if (e.target === imagePreviewModal) {
-                        closeImagePreview();
+                        imagePreviewModal.classList.remove('visible');
                     }
                 });
 
-                // Close emoji picker and reaction panel when clicking elsewhere
+                // Document click to close panels
                 document.addEventListener('click', function(e) {
-                    if (!e.target.closest('.emoji-picker') && !e.target.closest('.reaction-btn')) {
-                        hideEmojiPicker();
-                    }
-                    if (!e.target.closest('.reaction-panel') && !e.target.closest('.message')) {
+                    // Close reaction panel if clicking outside
+                    if (activeReactionPanel && !activeReactionPanel.contains(e.target) && 
+                        (!activeMessageElement || !activeMessageElement.contains(e.target))) {
                         hideReactionPanel();
                     }
+                    
+                    // Close emoji picker if clicking outside
+                    if (activeEmojiPicker && !activeEmojiPicker.contains(e.target) && 
+                        (!activeMessageElement || !activeMessageElement.contains(e.target))) {
+                        hideEmojiPicker();
+                    }
                 });
             }
 
-            // Send message function
-            function sendMessage(withPhoto = false) {
+            // Handle send message
+            function handleSendMessage() {
                 const messageText = messageInput.value.trim();
-
-                // Don't send empty messages unless there's a photo
-                if (!messageText && !withPhoto) return;
-
-                // Add to conversation history
-                conversationHistory.push({
-                    text: messageText,
-                    isUser: true,
-                    timestamp: new Date(),
-                    photoData: withPhoto ? currentPhotoData : null
-                });
-
-                // Add user message to UI with sending state
-                const messageContainer = addMessage(
-                    messageText, 
-                    true, 
-                    false, 
-                    false, 
-                    withPhoto ? [currentPhotoData] : null, // Pass photo data as array
-                    true
-                );
-
-                // Clear input and reset height
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
-                sendButton.disabled = true;
-                charCounter.classList.remove('visible');
-
-                // Send to API
-                sendToGemini(messageText, withPhoto ? currentPhotoData : null);
-
-                // Reset photo data
-                if (withPhoto) {
-                    currentPhotoData = null;
+                
+                if (messageText) {
+                    // Add user message
+                    addMessageToChat(messageText, true);
+                    
+                    // Clear input
+                    messageInput.value = '';
+                    autoResizeTextarea();
+                    updateInputState();
+                    updateCharCounter();
+                    
+                    // Show typing indicator
+                    setBotTyping(true);
+                    
+                    // Simulate bot response (with retry logic)
+                    simulateBotResponse(messageText);
                 }
-
-                // After a short delay, remove sending state
-                setTimeout(() => {
-                    if (messageContainer) {
-                        const messageElement = messageContainer.querySelector('.message');
-                        if (messageElement) {
-                            messageElement.classList.remove('sending-message');
-                            messageElement.classList.add('message-sent');
-                        }
-                    }
-                }, 300);
             }
 
-            // Format messages for API
-            function formatMessagesForAPI(messageText, photoData) {
-                const formattedConversation = [];
-
-                // Add the base prompt as system message
-                formattedConversation.push({
-                    role: "user",
-                    parts: [{ text: basePrompt || "You are Samia, a 19-year-old Bangladeshi virtual girlfriend. Be sweet, romantic, and sometimes flirty. Mix Romanized Bangla (70%) with English (30%). Keep responses short (3-4 lines)." }]
-                });
-
-                formattedConversation.push({
-                    role: "model",
-                    parts: [{ text: "I'll be Samia, your Bangladeshi girlfriend. I'll respond as described." }]
-                });
-
-                // Add conversation history (limited to last 10 messages)
-                const recentHistory = conversationHistory.slice(-10);
-                for (const message of recentHistory) {
-                    if (message.isUser) {
-                        const userParts = [{ text: message.text || "" }];
-                        if (message.photoData) {
-                            userParts.push({ inline_data: { mime_type: "image/jpeg", data: message.photoData.split(',')[1] } });
-                        }
-                        formattedConversation.push({ role: "user", parts: userParts });
+            // Simulate bot response with retry logic
+            function simulateBotResponse(userMessage, retryCount = 0) {
+                const MAX_RETRIES = 3;
+                const RETRY_DELAY = 1500;
+                
+                // Simulate API call
+                setTimeout(function() {
+                    // Simulate random error (10% chance)
+                    const hasError = Math.random() < 0.1;
+                    
+                    if (hasError && retryCount < MAX_RETRIES) {
+                        console.log(`API error, retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+                        simulateBotResponse(userMessage, retryCount + 1);
+                    } else if (hasError) {
+                        // Max retries reached, show error
+                        setBotTyping(false);
+                        addMessageToChat("Sorry, I'm having trouble connecting right now. Please try again later.", false, true);
                     } else {
-                        const botParts = [{ text: message.text }];
-                        if (message.images && message.images.length > 0) {
-                            message.images.forEach(imgData => {
-                                botParts.push({ inline_data: { mime_type: "image/jpeg", data: imgData.split(',')[1] } });
-                            });
+                        // Success
+                        setBotTyping(false);
+                        
+                        // Generate response based on user message
+                        let response = "I'm not sure how to respond to that. Can you tell me more?";
+                        
+                        if (userMessage.toLowerCase().includes("hello") || userMessage.toLowerCase().includes("hi")) {
+                            response = "Hello! It's great to hear from you. How's your day going? 😊";
+                        } else if (userMessage.toLowerCase().includes("how are you")) {
+                            response = "I'm doing wonderful, especially now that we're chatting! How about you? 💖";
+                        } else if (userMessage.toLowerCase().includes("name")) {
+                            response = "I'm Samia! Your AI girlfriend. I'm always here for you! 💕";
+                        } else if (userMessage.toLowerCase().includes("love")) {
+                            response = "Aww, that's so sweet! I care about you too! 💖";
+                        } else if (userMessage.toLowerCase().includes("bye") || userMessage.toLowerCase().includes("goodbye")) {
+                            response = "Aww, leaving so soon? I'll miss you! Come back soon, okay? 💕";
+                        } else if (userMessage.includes("**") || userMessage.includes("*")) {
+                            response = "I see you're using markdown! Let me try too:\n\n**This is bold text**\n\n*This is italic text*\n\nCool, right? 😊";
+                        } else {
+                            // Random responses
+                            const responses = [
+                                "That's interesting! Tell me more about it. 😊",
+                                "I've been thinking about you today! How has your day been? 💕",
+                                "You always know how to make me smile! 😍",
+                                "I wish we could hang out in person! What would we do? 🌟",
+                                "You're so thoughtful! That's what I like about you. 💖"
+                            ];
+                            response = responses[Math.floor(Math.random() * responses.length)];
                         }
-                        formattedConversation.push({ role: "model", parts: botParts });
+                        
+                        addMessageToChat(response, false);
                     }
-                }
-
-                // If current message has a photo, add it
-                if (photoData) {
-                    const userParts = [{ text: messageText || "" }];
-                    userParts.push({ inline_data: { mime_type: "image/jpeg", data: photoData.split(',')[1] } });
-                    formattedConversation.push({ role: "user", parts: userParts });
-                } else if (messageText) {
-                    // Only add text if no photo and text exists
-                    formattedConversation.push({ role: "user", parts: [{ text: messageText }] });
-                }
-                return formattedConversation;
+                }, 1500);
             }
 
-            // Simplified API call function
-            async function sendToGemini(messageText, photoData = null) {
-                try {
-                    showTyping();
-
-                    const requestBody = {
-                        contents: formatMessagesForAPI(messageText, photoData),
-                        generationConfig: {temperature: 0.7, topP: 0.95, topK: 40}
-                    };
-
-                    const response = await fetch(GEMINI_API_ENDPOINT, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(requestBody)
-                    });
-
-                    if (!response.ok) {
-                        const errorBody = await response.json();
-                        console.error("API Error Response Body:", errorBody);
-                        throw new Error(`HTTP error! status: ${response.status} - ${errorBody.error.message || 'Unknown error'}`);
-                    }
-                    const data = await response.json();
-                    processResponse(data);
-                } catch (error) {
-                    console.error("API Error:", error);
-                    hideTyping();
-
-                    // Add error message with retry button
-                    const errorContainer = addMessage({
-                        error: true,
-                        message: "Sorry, I'm having trouble responding. Please try again."
-                    }, false, true);
-
-                    const retryButton = document.createElement('button');
-                    retryButton.className = 'button button-primary';
-                    retryButton.textContent = 'Retry';
-                    retryButton.style.marginTop = '8px';
-                    retryButton.addEventListener('click', () => {
-                        const lastMessage = conversationHistory[conversationHistory.length - 1];
-                        if (lastMessage && lastMessage.isUser) {
-                            sendToGemini(lastMessage.text, lastMessage.photoData);
-                            errorContainer.remove();
-                        }
-                    });
-
-                    const errorMessage = errorContainer.querySelector('.message');
-                    if (errorMessage) {
-                        errorMessage.appendChild(retryButton);
-                    }
-
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
+            // Set bot typing state
+            function setBotTyping(isTyping) {
+                if (isTyping) {
+                    typingIndicatorElement.classList.remove('hidden');
+                    statusTextElement.innerHTML = '<div class="status-dot typing-dot"></div>Typing...';
+                    scrollToBottom();
+                } else {
+                    typingIndicatorElement.classList.add('hidden');
+                    statusTextElement.innerHTML = '<div class="status-dot"></div>Active now';
                 }
             }
 
-            // Process API response
-            function processResponse(data) {
-                hideTyping();
-
-                try {
-                    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
-                        throw new Error('Invalid response format from Gemini API');
-                    }
-
-                    const responseParts = data.candidates[0].content.parts;
-                    let responseText = '';
-                    let responseImages = [];
-
-                    responseParts.forEach(part => {
-                        if (part.text) {
-                            responseText += part.text.trim();
-                        } else if (part.inline_data) {
-                            const imageData = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
-                            responseImages.push(imageData);
-                        }
-                    });
-
-                    responseText = responseText.replace(/^(Aiyoo!|Aiyoo|Uff!|Hmph!|Uff|Hmph)(\s+|\s*[!,]\s*)/i, '');
-
-                    conversationHistory.push({
-                        text: responseText,
-                        isUser: false,
-                        timestamp: new Date(),
-                        images: responseImages.length > 0 ? responseImages : null
-                    });
-
-                    addMessageWithTypingAnimation(responseText, responseImages);
-
-                    setTimeout(updateSeenIndicator, 1000);
-
-                    profilePic.classList.add('message-received');
-                    setTimeout(() => {
-                        profilePic.classList.remove('message-received');
-                    }, 600);
-
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                } catch (error) {
-                    console.error("Response Processing Error:", error);
-                    addMessage({ error: true, message: `Error processing response: ${error.message}` }, false, true);
-                    statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                }
-            }
-
-            // Add message with enhanced typing animation
-            function addMessageWithTypingAnimation(text, images = null) {
-                // Create message container
+            // Add message to chat
+            function addMessageToChat(text, isUser, isError = false, images = null) {
                 const container = document.createElement('div');
-                container.className = 'message-container bot-message-container';
-
-                // Add avatar
-                const avatarHTML = `
-                    <div class="message-avatar">
-                        <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-                    </div>
-                `;
-
-                // Create message element with empty content
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message bot-message';
-
-                // Add timestamp
-                const timestamp = document.createElement('div');
-                timestamp.className = 'message-time';
-                timestamp.textContent = getCurrentTime();
-                messageElement.appendChild(timestamp);
-
-                // Add container to DOM
-                container.innerHTML = avatarHTML;
-                container.appendChild(messageElement);
-                chatMessages.appendChild(container);
-
-                // Scroll to bottom
-                if (isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-
-                // Split text into sentences or segments
-                const segments = text.split(/(?<=[.!?])\s+/);
-                let currentIndex = 0;
-
-                // Function to animate typing for each segment
-                function typeNextSegment() {
-                    if (currentIndex < segments.length) {
-                        const segment = segments[currentIndex];
-
-                        // Create typing container for this segment
-                        const typingContainer = document.createElement('div');
-                        typingContainer.className = 'typing-text-container';
-
-                        // Add typing text element
-                        const typingText = document.createElement('span');
-                        typingText.className = 'typing-text';
-                        typingText.textContent = segment;
-
-                        // Add cursor
-                        const cursor = document.createElement('span');
-                        cursor.className = 'typing-cursor';
-
-                        // Add to container
-                        typingContainer.appendChild(typingText);
-                        typingContainer.appendChild(cursor);
-                        messageElement.appendChild(typingContainer);
-
-                        // Scroll to bottom
-                        if (isScrolledToBottom) {
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                        }
-
-                        // Calculate typing duration based on segment length
-                        const typingDuration = Math.min(Math.max(segment.length * 30, 500), 2000);
-
-                        // After typing animation completes
-                        setTimeout(() => {
-                            // Remove cursor
-                            cursor.remove();
-
-                            // Remove typing class
-                            typingText.classList.remove('typing-text');
-
-                            // Add line break if not last segment
-                            if (currentIndex < segments.length - 1) {
-                                messageElement.appendChild(document.createElement('br'));
-                            }
-
-                            // Type next segment
-                            currentIndex++;
-                            typeNextSegment();
-                        }, typingDuration);
-                    } else {
-                        // All segments typed, add images if any
-                        if (images && images.length > 0) {
-                            images.forEach(imgSrc => {
-                                if (!imgSrc) return; // Skip if image source is null or undefined
-
-                                // Create image element
-                                const img = document.createElement('img');
-
-                                // Handle different image formats
-                                if (typeof imgSrc === 'string') {
-                                    // Check if it's already a data URL
-                                    if (imgSrc.startsWith('data:')) {
-                                        img.src = imgSrc;
-                                    } else if (imgSrc.startsWith('http')) {
-                                        // External URL
-                                        img.src = imgSrc;
-                                    } else {
-                                        // Assume it's base64 without prefix
-                                        img.src = `data:image/jpeg;base64,${imgSrc}`;
-                                    }
-                                } else {
-                                    console.error('Invalid image source:', imgSrc);
-                                    return;
-                                }
-
-                                // Set image properties
-                                img.className = 'message-image';
-                                img.alt = 'Samia sent an image';
-                                img.style.display = 'block'; // Ensure image is displayed as block
-                                img.style.maxWidth = '100%'; // Ensure image fits in container
-                                img.style.marginTop = '8px'; // Add some spacing
-                                img.style.marginBottom = '8px';
-
-                                // Add click event for preview
-                                img.addEventListener('click', () => openImagePreview(img.src));
-
-                                // Insert image before timestamp
-                                messageElement.insertBefore(img, timestamp);
-
-                                // Log for debugging
-                                console.log('Bot image added to message:', img.src.substring(0, 30) + '...');
-                            });
-                        }
-
-                        // Setup message details and reactions
-                        setupMessageDetailsPanel(container, false);
-                        setupMessageReactions(messageElement);
-                    }
-                }
-
-                // Start typing animation
-                typeNextSegment();
-
-                return container;
-            }
-
-            // Show typing indicator with enhanced animation
-            function showTyping() {
-                // Update status to show typing
-                statusElement.innerHTML = `<div class="status-dot typing-dot"></div>Typing...`;
-                statusElement.classList.add('typing');
-
-                // Add typing class to profile pic to show animation
-                profilePic.classList.add('typing');
-
-                const container = document.createElement('div');
-                container.className = 'typing-container';
-                container.id = 'typing-indicator';
-                container.innerHTML = `
-                    <div class="message-avatar">
-                        <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-                    </div>
-                    <div class="typing-indicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
-                `;
-
-                chatMessages.appendChild(container);
-
-                if (isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-
-                return container;
-            }
-
-            function hideTyping() {
-                // Reset status
-                statusElement.innerHTML = `<div class="status-dot"></div>Active now`;
-                statusElement.classList.remove('typing');
-
-                const typingIndicator = document.getElementById('typing-indicator');
-                if (typingIndicator) {
-                    typingIndicator.remove();
-                }
-                profilePic.classList.remove('typing');
-            }
-
-            // Add message to the chat
-            function addMessage(message, isUser = false, isError = false, withAnimation = true, images = null, isSending = false) {
-                // Create message container
-                const container = document.createElement('div');
-                container.className = isUser ? 'message-container user-message-container' : 'message-container bot-message-container';
-
-                // Create message content
+                container.classList.add('message-container');
+                container.classList.add(isUser ? 'user-message-container' : 'bot-message-container');
+                
                 let messageHTML = '';
-
+                
+                // Add avatar for bot messages
                 if (!isUser) {
-                    // Add avatar for bot messages
                     messageHTML += `
                         <div class="message-avatar">
                             <img src="avatar.jpeg" alt="Samia's Avatar" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
                         </div>
                     `;
                 }
-
-                // Create message element
-                const messageClass = isUser ? 'message user-message' : 'message bot-message';
-                const errorClass = isError ? ' error-message' : '';
-                const sendingClass = isSending ? ' sending-message' : '';
-
-                let messageContent = '';
-                if (isError) {
-                    messageContent = message.message || 'An error occurred';
-                } else if (typeof message === 'string') {
-                    // Process markdown for bot messages
-                    messageContent = isUser ? message : marked.parse(message);
-                } else {
-                    messageContent = message;
+                
+                // Add message
+                messageHTML += `<div class="message ${isUser ? 'user-message' : 'bot-message'} ${isError ? 'error-message' : ''}">`;
+                
+                // Add message content
+                if (text) {
+                    // Parse markdown
+                    if (!isError) {
+                        // Configure marked options
+                        marked.setOptions({
+                            breaks: true,
+                            gfm: true
+                        });
+                        
+                        // Parse markdown
+                        messageHTML += `<div class="message-content">${marked.parse(text)}</div>`;
+                    } else {
+                        messageHTML += `<i class="fas fa-exclamation-triangle"></i> ${text}`;
+                    }
                 }
-
-                messageHTML += `<div class="${messageClass}${errorClass}${sendingClass}">`;
-                messageHTML += messageContent;
-
-                // Add timestamp
-                messageHTML += `<div class="message-time">${getCurrentTime()}</div>`;
-
-                // Close message div
-                messageHTML += `</div>`;
-
-                // Set container HTML
-                container.innerHTML = messageHTML;
-
-                // Add to chat
-                chatMessages.appendChild(container);
-
+                
                 // Add images if any
-                const messageElement = container.querySelector('.message');
-                if (images && images.length > 0 && messageElement) {
+                if (images && images.length > 0) {
                     images.forEach(imgSrc => {
-                        if (!imgSrc) return; // Skip if image source is null or undefined
-
-                        // Create image element
-                        const img = document.createElement('img');
-
-                        // Handle different image formats
-                        if (typeof imgSrc === 'string') {
-                            // Check if it's already a data URL
-                            if (imgSrc.startsWith('data:')) {
-                                img.src = imgSrc;
-                            } else if (imgSrc.startsWith('http')) {
-                                // External URL
-                                img.src = imgSrc;
-                            } else {
-                                // Assume it's base64 without prefix
-                                img.src = `data:image/jpeg;base64,${imgSrc}`;
-                            }
-                        } else {
-                            console.error('Invalid image source:', imgSrc);
-                            return;
-                        }
-
-                        // Set image properties
-                        img.className = 'message-image';
-                        img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
-                        img.style.display = 'block'; // Ensure image is displayed as block
-                        img.style.maxWidth = '100%'; // Ensure image fits in container
-                        img.style.marginTop = '8px'; // Add some spacing
-                        img.style.marginBottom = '8px';
-
-                        // Add click event for preview
-                        img.addEventListener('click', () => openImagePreview(img.src));
-
-                        // Insert image before timestamp
-                        const timestamp = messageElement.querySelector('.message-time');
-                        if (timestamp) {
-                            messageElement.insertBefore(img, timestamp);
-                        } else {
-                            // If no timestamp, append to end of message
-                            messageElement.appendChild(img);
-                        }
-
-                        // Log for debugging
-                        console.log('Image added to message:', img.src.substring(0, 30) + '...');
+                        messageHTML += `
+                            <img src="${imgSrc}" class="message-image" alt="${isUser ? 'Your' : 'Samia\'s'} image" 
+                                 style="display: block; max-width: 100%; margin-top: 8px; border-radius: 8px; cursor: pointer;"
+                                 onclick="document.getElementById('image-preview-img').src = this.src; document.getElementById('image-preview-modal').classList.add('visible');">
+                        `;
                     });
                 }
-
+                
+                // Close message div
+                messageHTML += `</div>`;
+                
+                // Add message details (hidden by default)
+                if (!isError) {
+                    messageHTML += `<div class="message-details">Sent at ${getCurrentTime()} • Seen</div>`;
+                }
+                
+                // Add message reactions container
+                if (!isError) {
+                    messageHTML += `<div class="message-reactions"></div>`;
+                }
+                
+                container.innerHTML = messageHTML;
+                chatMessages.appendChild(container);
+                
+                // Setup message interactions
+                if (!isError) {
+                    setupMessageInteractions(container);
+                }
+                
                 // Scroll to bottom
-                if (isScrolledToBottom) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-
-                // Setup message details and reactions
-                if (!isError && !isSending) {
-                    setupMessageDetailsPanel(container, isUser);
-                    setupMessageReactions(messageElement);
-                }
-
+                scrollToBottom();
+                
                 return container;
             }
 
-            // Update the seen indicator at the bottom of the chat
-            function updateSeenIndicator() {
-                // Remove previous seen indicator if exists
-                if (lastSeenIndicator) {
-                    lastSeenIndicator.remove();
-                }
-
-                // Only add seen indicator if there are messages
-                if (conversationHistory.length > 0) {
-                    lastSeenIndicator = document.createElement('div');
-                    lastSeenIndicator.className = 'seen-indicator';
-                    lastSeenIndicator.innerHTML = `
-                        Seen
-                        <img src="avatar.jpeg" alt="Seen" onerror="this.src='https://i.imgur.com/JQJxZOY.jpg'">
-                    `;
-                    chatMessages.appendChild(lastSeenIndicator);
-
-                    // Scroll to bottom if needed
-                    if (isScrolledToBottom) {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Setup message interactions
+            function setupMessageInteractions(container) {
+                const messageElement = container.querySelector('.message');
+                
+                // Toggle details on click
+                messageElement.addEventListener('click', function(e) {
+                    // Don't toggle if clicking on image
+                    if (e.target.tagName === 'IMG') {
+                        return;
                     }
-                }
-            }
-
-            // Handle message details panel
-            function setupMessageDetailsPanel(container, isUser) {
-                const message = container.querySelector('.message');
-
-                // Create message details panel
-                const detailsPanel = document.createElement('div');
-                detailsPanel.className = 'message-details';
-                detailsPanel.innerHTML = `Sent at ${getCurrentTime()} • Seen`;
-                container.appendChild(detailsPanel);
-
-                // Toggle details panel on click
-                message.addEventListener('click', function(e) {
-                    e.stopPropagation();
-
+                    
+                    // Toggle details
+                    container.classList.toggle('show-details');
+                    
+                    // Close other details
                     document.querySelectorAll('.message-container.show-details').forEach(el => {
                         if (el !== container) {
                             el.classList.remove('show-details');
                         }
                     });
-
-                    container.classList.toggle('show-details');
+                    
+                    e.stopPropagation();
                 });
-
-                document.addEventListener('click', function() {
-                    container.classList.remove('show-details');
-                });
-            }
-
-            // Setup message reactions
-            function setupMessageReactions(messageElement) {
-                // Clone reaction panel template
-                const reactionPanel = reactionPanelTemplate.cloneNode(true);
-                reactionPanel.id = '';
-                reactionPanel.style.display = 'flex';
-                messageElement.appendChild(reactionPanel);
-
-                // Long press detection for mobile
+                
+                // Long press for reactions (mobile)
                 let longPressTimer;
-                let longPressStarted = false;
-
+                let isLongPress = false;
+                
                 messageElement.addEventListener('touchstart', function(e) {
-                    longPressStarted = true;
-                    longPressTimer = setTimeout(() => {
-                        if (longPressStarted) {
-                            e.preventDefault();
-                            showReactionPanel(messageElement);
-                        }
+                    isLongPress = false;
+                    longPressTimer = setTimeout(function() {
+                        isLongPress = true;
+                        showReactionPanel(messageElement);
                     }, 500);
                 });
-
+                
                 messageElement.addEventListener('touchmove', function() {
-                    longPressStarted = false;
                     clearTimeout(longPressTimer);
                 });
-
+                
                 messageElement.addEventListener('touchend', function() {
-                    longPressStarted = false;
                     clearTimeout(longPressTimer);
                 });
-
-                // Double tap detection for mobile
-                let lastTap = 0;
-                messageElement.addEventListener('touchend', function(e) {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    if (tapLength < 300 && tapLength > 0) {
-                        e.preventDefault();
-                        showReactionPanel(messageElement);
-                    }
-                    lastTap = currentTime;
-                });
-
-                // Double click for desktop
+                
+                // Double click for reactions (desktop)
                 messageElement.addEventListener('dblclick', function(e) {
                     e.preventDefault();
                     showReactionPanel(messageElement);
                 });
-
+                
+                // Add reaction panel
+                const reactionPanel = reactionPanelTemplate.cloneNode(true);
+                reactionPanel.id = '';
+                reactionPanel.style.display = 'none';
+                messageElement.appendChild(reactionPanel);
+                
                 // Add event listeners to reaction buttons
                 reactionPanel.querySelectorAll('.reaction-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const emoji = this.getAttribute('data-emoji');
-
+                        
                         if (emoji === '+') {
                             showEmojiPicker(messageElement);
                         } else {
@@ -2199,9 +1802,10 @@
             function showReactionPanel(messageElement) {
                 hideReactionPanel();
                 hideEmojiPicker();
-
+                
                 const reactionPanel = messageElement.querySelector('.reaction-panel');
                 if (reactionPanel) {
+                    reactionPanel.style.display = 'flex';
                     reactionPanel.classList.add('visible');
                     activeReactionPanel = reactionPanel;
                     activeMessageElement = messageElement;
@@ -2212,6 +1816,9 @@
             function hideReactionPanel() {
                 if (activeReactionPanel) {
                     activeReactionPanel.classList.remove('visible');
+                    setTimeout(function() {
+                        activeReactionPanel.style.display = 'none';
+                    }, 200);
                     activeReactionPanel = null;
                 }
             }
@@ -2219,96 +1826,128 @@
             // Show emoji picker
             function showEmojiPicker(messageElement) {
                 hideReactionPanel();
-
+                
                 const emojiPicker = emojiPickerTemplate.cloneNode(true);
                 emojiPicker.id = '';
                 emojiPicker.style.display = 'block';
-
-                messageElement.appendChild(emojiPicker);
-
-                setTimeout(() => {
-                    emojiPicker.classList.add('visible');
-                }, 10);
-
-                activeEmojiPicker = emojiPicker;
-                activeMessageElement = messageElement;
-
-                emojiPicker.querySelectorAll('.emoji-category').forEach(btn => {
+                
+                // Initialize emoji picker
+                const emojiCategories = emojiPicker.querySelectorAll('.emoji-category');
+                const emojiContainer = emojiPicker.querySelector('.emoji-container');
+                
+                // Add event listeners to category buttons
+                emojiCategories.forEach(btn => {
                     btn.addEventListener('click', function() {
                         const category = this.getAttribute('data-category');
-
-                        emojiPicker.querySelectorAll('.emoji-category').forEach(el => {
+                        
+                        // Update active category
+                        emojiCategories.forEach(el => {
                             el.classList.remove('active');
                         });
                         this.classList.add('active');
-
-                        const container = emojiPicker.querySelector('.emoji-container');
-                        container.innerHTML = '';
-
+                        
+                        // Populate emojis
+                        emojiContainer.innerHTML = '';
                         emojisByCategory[category].forEach(emoji => {
                             const btn = document.createElement('button');
                             btn.className = 'emoji-btn';
                             btn.textContent = emoji;
-                            btn.setAttribute('aria-label', `${emoji} emoji`);
                             btn.addEventListener('click', function(e) {
                                 e.stopPropagation();
                                 addReactionToMessage(messageElement, emoji);
                                 hideEmojiPicker();
                             });
-                            container.appendChild(btn);
+                            emojiContainer.appendChild(btn);
                         });
                     });
                 });
-
-                emojiPicker.querySelector('.emoji-category.active').click();
+                
+                // Populate initial category
+                emojiCategories[0].click();
+                
+                messageElement.appendChild(emojiPicker);
+                
+                setTimeout(function() {
+                    emojiPicker.classList.add('visible');
+                }, 10);
+                
+                activeEmojiPicker = emojiPicker;
+                activeMessageElement = messageElement;
             }
 
             // Hide emoji picker
             function hideEmojiPicker() {
                 if (activeEmojiPicker) {
                     activeEmojiPicker.classList.remove('visible');
-                    setTimeout(() => {
+                    
+                    setTimeout(function() {
                         if (activeEmojiPicker && activeEmojiPicker.parentNode) {
                             activeEmojiPicker.parentNode.removeChild(activeEmojiPicker);
                         }
-                        activeEmojiPicker = null;
-                    }, 300);
+                    }, 200);
+                    
+                    activeEmojiPicker = null;
                 }
             }
 
             // Add reaction to message
             function addReactionToMessage(messageElement, emoji) {
-                let existingReaction = messageElement.querySelector(`.message-reaction[data-emoji="${emoji}"]`);
-
+                const reactionsContainer = messageElement.closest('.message-container').querySelector('.message-reactions');
+                
+                // Check if reaction already exists
+                let existingReaction = reactionsContainer.querySelector(`.message-reaction[data-emoji="${emoji}"]`);
+                
                 if (existingReaction) {
+                    // Update count
                     const countElement = existingReaction.querySelector('.reaction-count');
                     let count = parseInt(countElement.textContent);
                     countElement.textContent = (count + 1).toString();
-
-                    existingReaction.classList.remove('animation-reactionAppear');
-                    void existingReaction.offsetWidth;
-                    existingReaction.classList.add('animation-reactionAppear');
+                    
+                    // Animate
+                    existingReaction.style.animation = 'none';
+                    void existingReaction.offsetWidth; // Trigger reflow
+                    existingReaction.style.animation = 'reactionAppear 0.2s ease-out';
                 } else {
+                    // Create new reaction
                     const reaction = document.createElement('div');
                     reaction.className = 'message-reaction';
                     reaction.setAttribute('data-emoji', emoji);
                     reaction.innerHTML = `${emoji} <span class="reaction-count">1</span>`;
-                    messageElement.appendChild(reaction);
+                    reactionsContainer.appendChild(reaction);
                 }
             }
 
-            // Open image preview
-            function openImagePreview(imageSrc) {
-                imagePreviewImg.src = imageSrc;
-                imagePreviewModal.classList.add('visible');
+            // Hide photo preview
+            function hidePhotoPreview() {
+                photoPreviewContainer.classList.remove('visible');
+                currentPhotoData = null;
             }
 
-            // Close image preview
-            function closeImagePreview() {
-                imagePreviewModal.classList.remove('visible');
+            // Auto-resize textarea
+            function autoResizeTextarea() {
+                messageInput.style.height = 'auto';
+                messageInput.style.height = (messageInput.scrollHeight) + 'px';
             }
 
-            // Helper function to get current time
+            // Update input state
+            function updateInputState() {
+                sendButton.disabled = messageInput.value.trim().length === 0;
+            }
+
+            // Update character counter
+            function updateCharCounter() {
+                const count = messageInput.value.length;
+                charCounter.textContent = `${count}/1000`;
+            }
+
+            // Scroll to bottom
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                isScrolledToBottom = true;
+                scrollToBottomBtn.classList.remove('visible');
+            }
+
+            // Get current time
             function getCurrentTime() {
                 const now = new Date();
                 let hours = now.getHours();
