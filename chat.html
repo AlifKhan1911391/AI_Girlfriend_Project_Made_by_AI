@@ -2122,7 +2122,7 @@
                                 img.className = 'message-image';
                                 img.alt = 'Samia sent an image';
                                 img.style.display = 'block'; // Ensure image is displayed as block
-                                img.style.maxWidth = '100%'; // Ensure image fits in container
+                                // Removed maxWidth inline style to allow CSS class to take effect
                                 img.style.marginTop = '8px'; // Add some spacing
                                 img.style.marginBottom = '8px';
                                 
@@ -2271,7 +2271,7 @@
                         img.className = 'message-image';
                         img.alt = isUser ? 'You sent an image' : 'Samia sent an image';
                         img.style.display = 'block'; // Ensure image is displayed as block
-                        img.style.maxWidth = '100%'; // Ensure image fits in container
+                        // Removed maxWidth inline style to allow CSS class to take effect
                         img.style.marginTop = '8px'; // Add some spacing
                         img.style.marginBottom = '8px';
                         
@@ -2576,4 +2576,5 @@
         });
     </script>
 </body>
+</html>
 </html>
